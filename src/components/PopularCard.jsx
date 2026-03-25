@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getVideos } from "../api/api";
 import { useNavigate } from "react-router-dom";
 import { shuffleVideos } from "../helper/myFunction";
+import { motion } from "framer-motion";
 import "./PopularCard.css";
 
 function PopularCard() {
@@ -24,60 +25,41 @@ function PopularCard() {
 
   return (
 
-    <div className="card popular-card shadow-sm">
+    <div className="popular-wrapper">
 
-      {/* HEADER */}
+      <h5 className="fw-bold mb-3">
+        🔥 Popular This Month
+      </h5>
 
-      <div className="popular-header">
+      {videos.map((video, index) => (
 
-        <span className="fire">🔥</span>
-        <h6>Popular This Month</h6>
+        <motion.div
+          key={video._id}
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: index * 0.05 }}
+          className="card mb-3 p-2 popular-item"
+          onClick={() => navigate(`/watch/${video.slug}`)}
+        >
 
-      </div>
+          <div className="d-flex">
 
-      <div className="row">
+            <img
+              src={video.thumbnail}
+              alt={video.title}
+              className="popular-thumb"
+              loading="lazy"
+            />
 
-        {videos.map(video => {
-
-          return (
-
-            <div key={video._id} className="col-12 col-sm-6 mb-3">
-
-              <div
-                className="popular-video d-flex"
-                onClick={() => navigate(`/watch/${video.slug}`)}
-              >
-
-                {/* thumbnail */}
-
-                <div className="popular-thumb">
-
-                  <img src={video.thumbnail} alt={video.title}
-                    loading="lazy" />
-
-                  <div className="play-overlay">▶</div>
-
-                </div>
-
-                {/* title */}
-
-                <div className="popular-content">
-
-                  <p className="popular-title">
-                    {video.title}
-                  </p>
-
-                </div>
-
-              </div>
-
+            <div className="ms-3 popular-title">
+              {video.title}
             </div>
 
-          );
+          </div>
 
-        })}
+        </motion.div>
 
-      </div>
+      ))}
 
     </div>
 
