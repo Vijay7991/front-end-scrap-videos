@@ -35,9 +35,9 @@ function PopularCard() {
 
         <motion.div
           key={video._id}
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: index * 0.05 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: index * 0.03 }}
           className="card mb-3 p-2 popular-item"
           onClick={() => navigate(`/watch/${video.slug}`)}
         >

@@ -2,7 +2,6 @@
   width:100%;
 }
 
-
 /* thumbnail */
 
 .popular-thumb{
@@ -25,13 +24,14 @@
   overflow:hidden;
 }
 
+/* item */
+
 .popular-item{
   cursor:pointer;
   border-radius:10px;
-  transition:all .25s ease;
+  transition:box-shadow .2s ease;
 }
 
 .popular-item:hover{
-  transform:translateY(-3px) scale(1.02);
-  box-shadow:0 8px 20px rgba(0,0,0,0.15);
+  box-shadow:0 4px 10px rgba(0,0,0,0.12);
 }
