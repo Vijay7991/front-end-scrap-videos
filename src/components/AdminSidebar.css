@@ -1,0 +1,44 @@
+.admin-sidebar{
+min-height:100vh;
+}
+
+/* default mobile layout */
+
+.admin-nav{
+display:flex;
+gap:10px;
+}
+
+.admin-btn{
+flex:1;
+text-align:center;
+}
+
+/* desktop layout */
+
+.admin-sidebar{
+min-height:100vh;
+}
+
+/* mobile fix */
+
+@media (max-width:768px){
+
+.admin-sidebar{
+min-height:auto;
+padding-bottom:10px;
+}
+
+}
+
+@media (min-width:992px){
+
+.admin-nav{
+flex-direction:column;
+}
+
+.admin-btn{
+text-align:left;
+}
+
+}
