@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 
 import { getVideo, getVideos } from "../api/api";
@@ -9,75 +9,145 @@ import VideoPlayer from "../components/VideoPlayer";
 
 import Skeleton from "@mui/material/Skeleton";
 
+
 function Watch() {
 
-  const shuffle = (arr) => {  
-    return [...arr].sort(() => Math.random() - 0.5);
-  };
-
-  const playNextVideo = () => {
-
-    if (!videos || videos.length === 0) return;
-
-    // pick first valid video that is NOT current
-    const nextVideo = videos.find(v => v.slug !== slug);
-
-    if (nextVideo?.slug) {
-      console.log("➡ Loading next video:", nextVideo.slug);
-      navigate(`/watch/${nextVideo.slug}`);
-    }
-
-  };
-
+  const playerRef = useRef(null);
+  
   const { slug } = useParams();
   const navigate = useNavigate();
 
   const [video, setVideo] = useState(null);
-  const [videos, setVideos] = useState([]);       // related videos
-  const [allVideos, setAllVideos] = useState([]); // all videos
+  
 
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const [allVideos, setAllVideos] = useState([]);
+  const [shuffledVideos, setShuffledVideos] = useState([]);
+
+  const loadedIds = useRef(new Set()); // 🔥 prevent duplicates
+
+  /* =========================
+     SHUFFLE FUNCTION
+  ========================= */
+  const shuffle = (arr) => {
+    return [...arr].sort(() => Math.random() - 0.5);
+  };
+
+  /* =========================
+     PLAY NEXT VIDEO
+  ========================= */
+  const playNextVideo = () => {
+
+    if (!shuffledVideos.length) return;
+
+    const nextVideo = shuffledVideos.find(v => v.slug !== slug);
+
+    if (nextVideo?.slug) {
+      navigate(`/watch/${nextVideo.slug}`);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+  };
+
+  /* =========================
+     LOAD MORE (CORE)
+  ========================= */
+  const loadMore = async (pageNum) => {
+
+    if (!hasNext || loadingMore) return;
+
+    setLoadingMore(true);
+
+    try {
+
+      const res = await getVideos(pageNum, 20);
+
+      const newData = res.data.data || [];
+
+      // ❌ remove current video + duplicates
+      const filtered = newData.filter(v =>
+        v.slug !== slug && !loadedIds.current.has(v._id)
+      );
+
+      // mark as loaded
+      filtered.forEach(v => loadedIds.current.add(v._id));
+
+      // append
+      setAllVideos(prev => [...prev, ...filtered]);
+
+      // shuffle only new batch
+      const shuffledBatch = shuffle(filtered);
+
+      setShuffledVideos(prev => [...prev, ...shuffledBatch]);
+
+      setHasNext(res.data.hasNext);
+      setPage(pageNum);
+
+    } catch (err) {
+      console.error(err);
+    }
+
+    setLoadingMore(false);
+  };
+
+  /* =========================
+     LOAD VIDEO + RESET
+  ========================= */
   useEffect(() => {
 
     setVideo(null);
+    setAllVideos([]);
+    setShuffledVideos([]);
+    setPage(1);
+    setHasNext(true);
+    loadedIds.current.clear();
 
-    // 1️⃣ Load single video
     getVideo(slug)
-      .then(res => {
-        setVideo(res.data);
-      })
-      .catch(err => console.error(err));
+      .then(res => setVideo(res.data))
+      .catch(console.error);
 
-    // 2️⃣ Load all videos once
-    getVideos(1, 50)
-      .then(res => {
-
-        const data = res.data || [];
-
-        // remove current video
-        const filtered = data.filter(v => v.slug !== slug);
-
-        // randomize for sidebar
-        const shuffled = [...filtered].sort(() => Math.random() - 0.5);
-
-        setVideos(shuffled);     // sidebar videos
-        setAllVideos(filtered);  // bottom videos
-
-      })
-      .catch(err => console.error(err));
+    loadMore(1);
 
   }, [slug]);
 
-  const suggested = videos.slice(0, 6);
+  /* =========================
+     INFINITE SCROLL
+  ========================= */
+  useEffect(() => {
+
+    const handleScroll = () => {
+
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 300
+      ) {
+        loadMore(page + 1);
+      }
+
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+
+  }, [page, hasNext, loadingMore]);
+
+  /* =========================
+     SIDEBAR VIDEOS
+  ========================= */
+  const suggested = shuffledVideos.slice(0, 6);
 
   return (
+    
 
     <div className="container mt-4">
 
       <div className="row">
-
         {/* LEFT VIDEO */}
-
-        <div className="col-lg-8">
+        <div ref={playerRef} className="col-lg-8">
 
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -92,6 +162,23 @@ function Watch() {
                 src={video.playerUrl}
                 poster={video.thumbnail}
                 onErrorNext={playNextVideo}
+                onReady={() => {
+                  setTimeout(() => {
+
+                    const yOffset = -80; // 🔥 adjust: -60 / -70 / -100 try karo
+
+                    const y =
+                      playerRef.current.getBoundingClientRect().top +
+                      window.pageYOffset +
+                      yOffset;
+
+                    window.scrollTo({
+                      top: y,
+                      behavior: "smooth"
+                    });
+
+                  }, 50);
+                }}
               />
 
             ) : (
@@ -109,31 +196,21 @@ function Watch() {
           <div className="mt-3">
 
             {video ? (
-
-              <h4 className="fw-bold">
-                {video.title}
-              </h4>
-
+              <h4 className="fw-bold">{video.title}</h4>
             ) : (
-
               <Skeleton width="70%" height={40} />
-
             )}
 
           </div>
 
         </div>
 
-
         {/* RIGHT SIDEBAR */}
-
         <div className="col-lg-4">
 
-          <h5 className="fw-bold mb-3">
-            Trending Posts
-          </h5>
+          <h5 className="fw-bold mb-3">Trending Posts</h5>
 
-          {videos.length === 0 ? (
+          {suggested.length === 0 ? (
 
             [...Array(6)].map((_, i) => (
 
@@ -165,7 +242,10 @@ function Watch() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className="card mb-3 p-2 suggested-card"
-                onClick={() => navigate(`/watch/${v.slug}`)}
+                onClick={() => {
+                  navigate(`/watch/${v.slug}`);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 style={{ cursor: "pointer" }}
               >
 
@@ -198,18 +278,14 @@ function Watch() {
 
       </div>
 
-
       {/* MORE VIDEOS */}
-
       <div className="mt-5">
 
-        <h5 className="fw-bold mb-3">
-          More Videos
-        </h5>
+        <h5 className="fw-bold mb-3">More Videos</h5>
 
         <div className="row">
 
-          {allVideos.length === 0 ? (
+          {shuffledVideos.length === 0 ? (
 
             [...Array(8)].map((_, i) => (
 
@@ -229,25 +305,32 @@ function Watch() {
 
           ) : (
 
-              shuffle(allVideos)
-                .filter(v => v.slug !== slug)
-                .slice(0, 16)
-              .map(v => (
+            shuffledVideos.map(v => (
 
-                <div
-                  key={v._id}
-                  className="col-6 col-md-4 col-lg-3 mb-4"
-                >
+              <div
+                key={v._id}
+                className="col-6 col-md-4 col-lg-3 mb-4"
+                onClick={() => {
+                  navigate(`/watch/${v.slug}`);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                style={{ cursor: "pointer" }}
+              >
 
-                  <VideoCard video={v} />
+                <VideoCard video={v} />
 
-                </div>
+              </div>
 
-              ))
+            ))
 
           )}
 
         </div>
+
+        {/* LOADER */}
+        {loadingMore && (
+          <p className="text-center mt-3">Loading more...</p>
+        )}
 
       </div>
 

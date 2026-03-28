@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import "./VideoCard.css";
 
 function VideoCard({ video }) {
 
@@ -8,50 +7,27 @@ function VideoCard({ video }) {
   return (
 
     <div
-      className="card video-card border-0"
-      onClick={() => navigate(`/watch/${video.slug}`)}
+      className="video-card"
+      style={{ cursor: "pointer" }}
+      onClick={() => {
+        navigate(`/watch/${video.slug}`);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }}
     >
 
-      <div className="video-thumb">
+      <img
+        src={video.thumbnail}
+        alt={video.title}
+        style={{
+          width: "100%",
+          height: "180px",
+          objectFit: "cover",
+          borderRadius: "10px"
+        }}
+      />
 
-        <img
-          src={video.thumbnail}
-          alt={video.title}
-          loading="lazy"
-        />
-
-        <div className="play-overlay">▶</div>
-
-      </div>
-
-      <div className="p-2">
-
-        <p
-          className="mb-1"
-          style={{
-            fontSize: "14px",
-            fontWeight: "600",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden"
-          }}
-        >
-          {video.title}
-        </p>
-
-        {/* views */}
-
-        <p
-          style={{
-            fontSize: "12px",
-            color: "#666",
-            marginBottom: 0
-          }}
-        >
-          👁 {video.views || 0} views
-        </p>
-
+      <div className="mt-2 fw-semibold small">
+        {video.title}
       </div>
 
     </div>

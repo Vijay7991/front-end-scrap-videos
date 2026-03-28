@@ -1,23 +1,24 @@
-import { useEffect, useState } from "react";
-import { getVideos } from "../api/api";
+import { useEffect, useState, useRef } from "react";
+import { getPopularMixed } from "../api/api";
 import { useNavigate } from "react-router-dom";
-import { shuffleVideos } from "../helper/myFunction";
 import { motion } from "framer-motion";
-import "./PopularCard.css";
+import "./PopularCard.css"; // ✅ keep same CSS
 
 function PopularCard() {
 
   const [videos, setVideos] = useState([]);
   const navigate = useNavigate();
 
+  const hasFetched = useRef(false); // 🔥 prevent multiple calls
+
   useEffect(() => {
 
-    getVideos()
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
+    getPopularMixed()
       .then(res => {
-
-        const shuffled = shuffleVideos(res.data || []);
-        setVideos(shuffled.slice(0, 30));
-
+        setVideos(res.data || []);
       })
       .catch(err => console.error(err));
 
@@ -31,35 +32,51 @@ function PopularCard() {
         🔥 Popular This Month
       </h5>
 
-      {videos.map((video, index) => (
+      {videos.length === 0 ? (
 
-        <motion.div
-          key={video._id}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, delay: index * 0.03 }}
-          className="card mb-3 p-2 popular-item"
-          onClick={() => navigate(`/watch/${video.slug}`)}
-        >
+        <p>Loading...</p>
 
-          <div className="d-flex">
+      ) : (
 
-            <img
-              src={video.thumbnail}
-              alt={video.title}
-              className="popular-thumb"
-              loading="lazy"
-            />
+        videos.map((video, index) => (
 
-            <div className="ms-3 popular-title">
-              {video.title}
+          <motion.div
+            key={video._id}
+            initial={{ opacity: 0, x: 40 }}   // 🔥 slide from right
+            animate={{ opacity: 1, x: 0 }}
+            transition={{
+              duration: 0.3,
+              delay: index * 0.05,
+              ease: "easeOut"
+            }}
+            className="card mb-3 p-2 popular-item"
+            onClick={() => {
+              navigate(`/watch/${video.slug}`);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            style={{ cursor: "pointer" }}
+          >
+
+            <div className="d-flex">
+
+              <img
+                src={video.thumbnail}
+                alt={video.title}
+                className="popular-thumb"
+                loading="lazy"
+              />
+
+              <div className="ms-3 popular-title">
+                {video.title}
+              </div>
+
             </div>
 
-          </div>
+          </motion.div>
 
-        </motion.div>
+        ))
 
-      ))}
+      )}
 
     </div>
 

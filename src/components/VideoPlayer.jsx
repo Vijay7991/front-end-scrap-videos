@@ -3,7 +3,7 @@ import Plyr from "plyr";
 import "plyr/dist/plyr.css";
 import { CircularProgress } from "@mui/material";
 
-function VideoPlayer({ src, poster, onErrorNext }) {
+function VideoPlayer({ src, poster, onErrorNext, onReady }) {
 
   const videoRef = useRef(null);
   const playerRef = useRef(null);
@@ -27,6 +27,10 @@ function VideoPlayer({ src, poster, onErrorNext }) {
 
     const handleLoaded = () => {
       setLoading(false);
+
+      if (onReady) {
+        onReady(); // 🔥 notify parent
+      }
     };
 
     const handleError = () => {
