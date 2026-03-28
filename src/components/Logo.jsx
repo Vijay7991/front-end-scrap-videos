@@ -15,7 +15,7 @@ function Logo() {
         letterSpacing: "2px"
       }}
     >
-      FALTU99.IN
+      BFMILK.COM
     </Typography>
 
   );

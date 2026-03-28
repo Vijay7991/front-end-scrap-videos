@@ -69,7 +69,7 @@ function MobileDrawer({ open, close }) {
             animation: "logoGlow 3s ease-in-out infinite"
           }}
         >
-          FALTU99.IN
+          BFMILK.COM
         </Typography>
 
       </Box>

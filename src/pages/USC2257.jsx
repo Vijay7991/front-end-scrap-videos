@@ -9,7 +9,7 @@ function USC2257() {
             </h2>
 
             <p>
-                <strong>FALTU99.IN</strong> is not a producer (primary or secondary)
+                <strong>BFMILK.COM</strong> is not a producer (primary or secondary)
                 of any of the content found on this website. With respect to the
                 records as per <strong>18 USC 2257</strong> for any and all content
                 found on this site, please direct your request to the website or
@@ -17,7 +17,7 @@ function USC2257() {
             </p>
 
             <p>
-                <strong>FALTU99.IN</strong> operates as a video sharing platform
+                <strong>BFMILK.COM</strong> operates as a video sharing platform
                 that allows users to upload, share, and view various types of
                 adult content. While we strive to ensure compliance with legal
                 requirements, we cannot guarantee complete accuracy of all
@@ -56,7 +56,7 @@ function USC2257() {
             </h5>
 
             <p>
-                <strong>FALTU99.IN</strong> allows users to report or flag
+                <strong>BFMILK.COM</strong> allows users to report or flag
                 inappropriate content. If any material is flagged as illegal,
                 unlawful, harmful, harassing, or offensive, the content will
                 be reviewed and removed from the website without delay.
@@ -77,7 +77,7 @@ function USC2257() {
 
             <p>
                 For further assistance or information regarding compliance,
-                please contact the FALTU99.IN compliance team through the
+                please contact the BFMILK.COM compliance team through the
                 website support form.
             </p>
 

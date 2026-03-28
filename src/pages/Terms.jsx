@@ -9,7 +9,7 @@ function Terms() {
             </h2>
 
             <p>
-                Welcome to <strong>faltu99.in</strong>. By accessing and using our
+                Welcome to <strong>bfmilk.com</strong>. By accessing and using our
                 website, you agree to the following terms and conditions. If you do
                 not agree with any part of these terms, please do not use our site.
             </p>
@@ -55,7 +55,7 @@ function Terms() {
 
             <p>
                 All logos, branding, and content layout are owned by
-                <strong> faltu99.in </strong>
+                <strong> bfmilk.com </strong>
                 unless otherwise stated. Third-party content belongs to
                 their respective owners.
             </p>
@@ -76,7 +76,7 @@ function Terms() {
             </h5>
 
             <p>
-                faltu99.in shall not be held responsible for any damages or
+                bfmilk.com shall not be held responsible for any damages or
                 legal issues arising from the use of our site or the content
                 accessed through it.
             </p>
@@ -100,7 +100,7 @@ function Terms() {
             <p>
                 For questions regarding these terms, contact us at:
                 <br />
-                GMAIL: <strong>buffaloesmilk@gmail.com</strong>
+                MAIL: <strong>bfmilk@proton.me</strong>
             </p>
 
         </div>

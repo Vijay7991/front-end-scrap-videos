@@ -9,7 +9,7 @@ function DMCAPage() {
             </h2>
 
             <p>
-                <strong>HotWebHD.com</strong> respects the intellectual property
+                <strong>www.bfmilk.com</strong> respects the intellectual property
                 rights of others. All the content available on this site is
                 sourced from third-party websites and is publicly available on
                 the internet.
@@ -69,7 +69,7 @@ function DMCAPage() {
 
             <p>
                 <strong>
-                    jasenribbs001@gmail.com
+                    bfmilk@proton.me
                 </strong>
             </p>
 

@@ -10,11 +10,11 @@ function About() {
             </h2>
 
             <h5 className="fw-semibold mb-3">
-                About FALTU99.IN
+                About BFMILK.COM
             </h5>
 
             <p>
-                <strong>FALTU99.IN</strong> is your one-stop source for the latest
+                <strong>BFMILK.COM</strong> is your one-stop source for the latest
                 and hottest Hindi web series. We curate web series from various
                 streaming platforms and make them easily accessible for download
                 in different resolutions — including <strong>1080p</strong>,
