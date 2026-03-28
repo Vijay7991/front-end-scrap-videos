@@ -8,11 +8,14 @@ import VideoCard from "../components/VideoCard";
 import VideoPlayer from "../components/VideoPlayer";
 
 import Skeleton from "@mui/material/Skeleton";
+import { useCallback } from "react";
 
 
 function Watch() {
 
   const playerRef = useRef(null);
+  const loaderRef = useRef(null);       // 👈 bottom trigger
+  const isFetchingRef = useRef(false);  // 👈 control duplicate calls
   
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -113,25 +116,68 @@ function Watch() {
 
   }, [slug]);
 
+
+  const handleReady = useCallback(() => {
+
+    setTimeout(() => {
+
+      const yOffset = -80;
+
+      const y =
+        playerRef.current.getBoundingClientRect().top +
+        window.pageYOffset +
+        yOffset;
+
+      window.scrollTo({
+        top: y,
+        behavior: "smooth"
+      });
+
+    }, 50);
+
+  }, []);
   /* =========================
      INFINITE SCROLL
   ========================= */
   useEffect(() => {
 
-    const handleScroll = () => {
+    const observer = new IntersectionObserver(
+      (entries) => {
 
-      if (
-        window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 300
-      ) {
-        loadMore(page + 1);
+        const entry = entries[0];
+
+        if (
+          entry.isIntersecting &&
+          hasNext &&
+          !loadingMore &&
+          !isFetchingRef.current
+        ) {
+
+          isFetchingRef.current = true;
+
+          loadMore(page + 1).finally(() => {
+            setTimeout(() => {
+              isFetchingRef.current = false;
+            }, 500);
+          });
+
+        }
+
+      },
+      {
+        threshold: 1.0
       }
+    );
 
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => {
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
+      }
     };
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => window.removeEventListener("scroll", handleScroll);
 
   }, [page, hasNext, loadingMore]);
 
@@ -147,38 +193,19 @@ function Watch() {
 
       <div className="row">
         {/* LEFT VIDEO */}
-        <div ref={playerRef} className="col-lg-8">
+    
 
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          {/* LEFT VIDEO */}
+          <div ref={playerRef} className="col-lg-8" key={video?.slug}>
 
+            {/* ❌ motion removed from player */}
             {video ? (
 
               <VideoPlayer
-                key={video.slug}
                 src={video.playerUrl}
                 poster={video.thumbnail}
                 onErrorNext={playNextVideo}
-                onReady={() => {
-                  setTimeout(() => {
-
-                    const yOffset = -80; // 🔥 adjust: -60 / -70 / -100 try karo
-
-                    const y =
-                      playerRef.current.getBoundingClientRect().top +
-                      window.pageYOffset +
-                      yOffset;
-
-                    window.scrollTo({
-                      top: y,
-                      behavior: "smooth"
-                    });
-
-                  }, 50);
-                }}
+                onReady={handleReady}
               />
 
             ) : (
@@ -191,19 +218,21 @@ function Watch() {
 
             )}
 
-          </motion.div>
-
-          <div className="mt-3">
-
-            {video ? (
-              <h4 className="fw-bold">{video.title}</h4>
-            ) : (
-              <Skeleton width="70%" height={40} />
-            )}
+            {/* 👇 motion yaha use kar sakte ho safely */}
+            <motion.div
+              className="mt-3"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {video ? (
+                <h4 className="fw-bold">{video.title}</h4>
+              ) : (
+                <Skeleton width="70%" height={40} />
+              )}
+            </motion.div>
 
           </div>
-
-        </div>
+     
 
         {/* RIGHT SIDEBAR */}
         <div className="col-lg-4">
@@ -277,6 +306,7 @@ function Watch() {
         </div>
 
       </div>
+      <div ref={loaderRef} style={{ height: "20px" }} />
 
       {/* MORE VIDEOS */}
       <div className="mt-5">

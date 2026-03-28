@@ -21,7 +21,11 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
 
     // destroy old player
     if (playerRef.current) {
-      playerRef.current.destroy();
+      try {
+        playerRef.current.destroy();
+      } catch (e) {
+        console.warn("Plyr destroy error:", e);
+      }
       playerRef.current = null;
     }
 
@@ -85,7 +89,11 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
       video.removeEventListener("error", handleError);
 
       if (playerRef.current) {
-        playerRef.current.destroy();
+        try {
+          playerRef.current.destroy();
+        } catch (e) {
+          console.warn("Destroy cleanup error:", e);
+        }
         playerRef.current = null;
       }
 
