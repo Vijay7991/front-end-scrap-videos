@@ -5,7 +5,6 @@ import {
   Dialog,
   InputBase,
   Box,
-  Typography,
   useMediaQuery
 } from "@mui/material";
 
