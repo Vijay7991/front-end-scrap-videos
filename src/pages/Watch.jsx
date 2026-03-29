@@ -1,369 +1,295 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 
 import { getVideo, getVideos } from "../api/api";
 
 import VideoCard from "../components/VideoCard";
 import VideoPlayer from "../components/VideoPlayer";
+import Pagination from "../pages/Pagination";
 
 import Skeleton from "@mui/material/Skeleton";
-import { useCallback } from "react";
-
 
 function Watch() {
 
-  const playerRef = useRef(null);
-  const loaderRef = useRef(null);       // 👈 bottom trigger
-  const isFetchingRef = useRef(false);  // 👈 control duplicate calls
-  
-  const { slug } = useParams();
-  const navigate = useNavigate();
+    const playerRef = useRef(null);
 
-  const [video, setVideo] = useState(null);
-  
+    const { slug } = useParams();
+    const navigate = useNavigate();
 
-  const [page, setPage] = useState(1);
-  const [hasNext, setHasNext] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+    const [video, setVideo] = useState(null);
 
-  const [shuffledVideos, setShuffledVideos] = useState([]);
+    // ✅ pagination states
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [videos, setVideos] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-  const loadedIds = useRef(new Set()); // 🔥 prevent duplicates
+    /* =========================
+       PLAY NEXT VIDEO
+    ========================= */
+    const playNextVideo = () => {
 
-  /* =========================
-     SHUFFLE FUNCTION
-  ========================= */
-  const shuffle = (arr) => {
-    return [...arr].sort(() => Math.random() - 0.5);
-  };
+        if (!videos.length) return;
 
-  /* =========================
-     PLAY NEXT VIDEO
-  ========================= */
-  const playNextVideo = () => {
+        const nextVideo = videos.find(v => v.slug !== slug);
 
-    if (!shuffledVideos.length) return;
-
-    const nextVideo = shuffledVideos.find(v => v.slug !== slug);
-
-    if (nextVideo?.slug) {
-      navigate(`/watch/${nextVideo.slug}`);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-  };
-
-  /* =========================
-     LOAD MORE (CORE)
-  ========================= */
-  const loadMore = useCallback(async (pageNum) => {
-
-    if (!hasNext || loadingMore) return;
-
-    setLoadingMore(true);
-
-    try {
-
-      const res = await getVideos(pageNum, 20);
-
-      const newData = res.data.data || [];
-
-      const filtered = newData.filter(v =>
-        v.slug !== slug && !loadedIds.current.has(v._id)
-      );
-
-      filtered.forEach(v => loadedIds.current.add(v._id));
-
-      const shuffledBatch = shuffle(filtered);
-
-      setShuffledVideos(prev => [...prev, ...shuffledBatch]);
-
-      setHasNext(res.data.hasNext);
-      setPage(pageNum);
-
-    } catch (err) {
-      console.error(err);
-    }
-
-    setLoadingMore(false);
-
-  }, [hasNext, loadingMore, slug]);  // ✅ IMPORTANT
-
-  /* =========================
-     LOAD VIDEO + RESET
-  ========================= */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-
-    setVideo(null);
-    setShuffledVideos([]);
-    setPage(1);
-    setHasNext(true);
-    loadedIds.current.clear();
-
-    getVideo(slug)
-      .then(res => setVideo(res.data))
-      .catch(console.error);
-
-    loadMore(1);
-
-  }, [slug]);
-
-
-  const handleReady = useCallback(() => {
-
-    setTimeout(() => {
-
-      const yOffset = -80;
-
-      const y =
-        playerRef.current.getBoundingClientRect().top +
-        window.pageYOffset +
-        yOffset;
-
-      window.scrollTo({
-        top: y,
-        behavior: "smooth"
-      });
-
-    }, 50);
-
-  }, []);
-  /* =========================
-     INFINITE SCROLL
-  ========================= */
-  useEffect(() => {
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-
-        const entry = entries[0];
-
-        if (
-          entry.isIntersecting &&
-          hasNext &&
-          !loadingMore &&
-          !isFetchingRef.current
-        ) {
-
-          isFetchingRef.current = true;
-
-          loadMore(page + 1).finally(() => {
-            setTimeout(() => {
-              isFetchingRef.current = false;
-            }, 500);
-          });
-
+        if (nextVideo?.slug) {
+            navigate(`/watch/${nextVideo.slug}`);
+            window.scrollTo({ top: 0, behavior: "smooth" });
         }
-
-      },
-      {
-        threshold: 1.0
-      }
-    );
-
-    const currentLoader = loaderRef.current;
-
-    if (currentLoader) {
-      observer.observe(currentLoader);
-    }
-
-    return () => {
-      if (currentLoader) {
-        observer.unobserve(currentLoader);
-      }
     };
 
-  }, [page, hasNext, loadingMore, loadMore]);
+    /* =========================
+       LOAD SINGLE VIDEO
+    ========================= */
+    useEffect(() => {
 
-  /* =========================
-     SIDEBAR VIDEOS
-  ========================= */
-  const suggested = shuffledVideos.slice(0, 6);
+        setVideo(null);
 
-  return (
-    
+        getVideo(slug)
+            .then(res => setVideo(res.data))
+            .catch(console.error);
 
-    <div className="container mt-4">
+    }, [slug]);
 
-      <div className="row">
-        {/* LEFT VIDEO */}
-    
+    /* =========================
+       LOAD PAGINATED VIDEOS
+    ========================= */
+    useEffect(() => {
 
-          {/* LEFT VIDEO */}
-          <div ref={playerRef} className="col-lg-8" key={video?.slug}>
+        setLoading(true);
 
-            {/* ❌ motion removed from player */}
-            {video ? (
+        getVideos(page, 20)
+            .then(res => {
 
-              <VideoPlayer
-                src={video.playerUrl}
-                poster={video.thumbnail}
-                onErrorNext={playNextVideo}
-                onReady={handleReady}
-              />
+                const data = res.data.data || [];
 
-            ) : (
+                // current video remove
+                const filtered = data.filter(v => v.slug !== slug);
 
-              <Skeleton
-                variant="rectangular"
-                height={450}
-                sx={{ borderRadius: 2 }}
-              />
+                setVideos(filtered);
+                setTotalPages(res.data.totalPages || 1);
 
-            )}
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
 
-            {/* 👇 motion yaha use kar sakte ho safely */}
-            <motion.div
-              className="mt-3"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              {video ? (
-                <h4 className="fw-bold">{video.title}</h4>
-              ) : (
-                <Skeleton width="70%" height={40} />
-              )}
-            </motion.div>
+    }, [page, slug]);
 
-          </div>
-     
+    /* =========================
+       HANDLE READY
+    ========================= */
+    const handleReady = useCallback(() => {
 
-        {/* RIGHT SIDEBAR */}
-        <div className="col-lg-4">
+        setTimeout(() => {
 
-          <h5 className="fw-bold mb-3">Trending Posts</h5>
+            const yOffset = -80;
 
-          {suggested.length === 0 ? (
+            const y =
+                playerRef.current.getBoundingClientRect().top +
+                window.pageYOffset +
+                yOffset;
 
-            [...Array(6)].map((_, i) => (
+            window.scrollTo({
+                top: y,
+                behavior: "smooth"
+            });
 
-              <div key={i} className="d-flex mb-3">
+        }, 50);
 
-                <Skeleton
-                  variant="rectangular"
-                  width={120}
-                  height={70}
-                  sx={{ borderRadius: 2 }}
-                />
+    }, []);
 
-                <div className="ms-3" style={{ flex: 1 }}>
-                  <Skeleton width="90%" />
-                  <Skeleton width="60%" />
-                </div>
+    /* =========================
+       PAGINATION HANDLER
+    ========================= */
+    const handlePageChange = (p) => {
+        setPage(p);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
-              </div>
+    /* =========================
+       SIDEBAR VIDEOS
+    ========================= */
+    const suggested = videos.slice(0, 6);
 
-            ))
+    return (
 
-          ) : (
+        <div className="container mt-4">
 
-            suggested.map((v, index) => (
+            <div className="row">
 
-              <motion.div
-                key={v._id}
-                initial={{ opacity: 0, x: 40 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="card mb-3 p-2 suggested-card"
-                onClick={() => {
-                  navigate(`/watch/${v.slug}`);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                style={{ cursor: "pointer" }}
-              >
+                {/* LEFT VIDEO */}
+                <div ref={playerRef} className="col-lg-8" key={video?.slug}>
 
-                <div className="d-flex">
+                    {video ? (
 
-                  <img
-                    src={v.thumbnail}
-                    alt={v.title}
-                    style={{
-                      width: "120px",
-                      height: "70px",
-                      objectFit: "cover",
-                      borderRadius: "8px"
-                    }}
-                  />
+                        <VideoPlayer
+                            key={video?.playerUrl}   // ✅ stable per video
+                            src={video.playerUrl}
+                            poster={video.thumbnail}
+                            onErrorNext={playNextVideo}
+                            onReady={handleReady}
+                        />
 
-                  <div className="ms-3 small fw-semibold">
-                    {v.title}
-                  </div>
+                    ) : (
+
+                        <Skeleton
+                            variant="rectangular"
+                            height={450}
+                            sx={{ borderRadius: 2 }}
+                        />
+
+                    )}
+
+                    <motion.div
+                        className="mt-3"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        {video ? (
+                            <h4 className="fw-bold">{video.title}</h4>
+                        ) : (
+                            <Skeleton width="70%" height={40} />
+                        )}
+                    </motion.div>
 
                 </div>
 
-              </motion.div>
+                {/* RIGHT SIDEBAR */}
+                <div className="col-lg-4">
 
-            ))
+                    <h5 className="fw-bold mb-3">Trending Posts</h5>
 
-          )}
+                    {suggested.length === 0 ? (
 
-        </div>
+                        [...Array(6)].map((_, i) => (
 
-      </div>
-      <div ref={loaderRef} style={{ height: "20px" }} />
+                            <div key={i} className="d-flex mb-3">
 
-      {/* MORE VIDEOS */}
-      <div className="mt-5">
+                                <Skeleton
+                                    variant="rectangular"
+                                    width={120}
+                                    height={70}
+                                    sx={{ borderRadius: 2 }}
+                                />
 
-        <h5 className="fw-bold mb-3">More Videos</h5>
+                                <div className="ms-3" style={{ flex: 1 }}>
+                                    <Skeleton width="90%" />
+                                    <Skeleton width="60%" />
+                                </div>
 
-        <div className="row">
+                            </div>
 
-          {shuffledVideos.length === 0 ? (
+                        ))
 
-            [...Array(8)].map((_, i) => (
+                    ) : (
 
-              <div key={i} className="col-6 col-md-4 col-lg-3 mb-4">
+                        suggested.map((v, index) => (
 
-                <Skeleton
-                  variant="rectangular"
-                  height={180}
-                  sx={{ borderRadius: 2 }}
+                            <motion.div
+                                key={v._id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.2 }}
+                                className="card mb-3 p-2 suggested-card"
+                                onClick={() => {
+                                    navigate(`/watch/${v.slug}`);
+                                    window.scrollTo({ top: 0, behavior: "smooth" });
+                                }}
+                                style={{ cursor: "pointer" }}
+                            >
+
+                                <div className="d-flex">
+
+                                    <img
+                                        src={v.thumbnail}
+                                        alt={v.title}
+                                        style={{
+                                            width: "120px",
+                                            height: "70px",
+                                            objectFit: "cover",
+                                            borderRadius: "8px"
+                                        }}
+                                    />
+
+                                    <div className="ms-3 small fw-semibold">
+                                        {v.title}
+                                    </div>
+
+                                </div>
+
+                            </motion.div>
+
+                        ))
+
+                    )}
+
+                </div>
+
+            </div>
+
+            {/* MORE VIDEOS */}
+            <div className="mt-5">
+
+                <h5 className="fw-bold mb-3">More Videos</h5>
+
+                <div className="row">
+
+                    {loading ? (
+
+                        [...Array(8)].map((_, i) => (
+
+                            <div key={i} className="col-6 col-md-4 col-lg-3 mb-4">
+
+                                <Skeleton
+                                    variant="rectangular"
+                                    height={180}
+                                    sx={{ borderRadius: 2 }}
+                                />
+
+                                <Skeleton width="80%" />
+
+                            </div>
+
+                        ))
+
+                    ) : (
+
+                        videos.map(v => (
+
+                            <div
+                                key={v._id}
+                                className="col-6 col-md-4 col-lg-3 mb-4"
+                                onClick={() => {
+                                    navigate(`/watch/${v.slug}`);
+                                    window.scrollTo({ top: 0, behavior: "smooth" });
+                                }}
+                                style={{ cursor: "pointer" }}
+                            >
+
+                                <VideoCard video={v} />
+
+                            </div>
+
+                        ))
+
+                    )}
+
+                </div>
+
+                {/* ✅ PAGINATION (NEW) */}
+                <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
                 />
 
-                <Skeleton width="80%" />
-
-              </div>
-
-            ))
-
-          ) : (
-
-            shuffledVideos.map(v => (
-
-              <div
-                key={v._id}
-                className="col-6 col-md-4 col-lg-3 mb-4"
-                onClick={() => {
-                  navigate(`/watch/${v.slug}`);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                style={{ cursor: "pointer" }}
-              >
-
-                <VideoCard video={v} />
-
-              </div>
-
-            ))
-
-          )}
+            </div>
 
         </div>
 
-        {/* LOADER */}
-        {loadingMore && (
-          <p className="text-center mt-3">Loading more...</p>
-        )}
-
-      </div>
-
-    </div>
-
-  );
-
+    );
 }
 
 export default Watch;

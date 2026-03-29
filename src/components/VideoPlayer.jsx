@@ -11,6 +11,14 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const onReadyRef = useRef(onReady);
+  const onErrorNextRef = useRef(onErrorNext);
+
+  useEffect(() => {
+    onReadyRef.current = onReady;
+    onErrorNextRef.current = onErrorNext;
+  }, [onReady, onErrorNext]);
+
   useEffect(() => {
 
     const video = videoRef.current;
@@ -31,10 +39,7 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
 
     const handleLoaded = () => {
       setLoading(false);
-
-      if (onReady) {
-        onReady(); // 🔥 notify parent
-      }
+      onReadyRef.current?.();
     };
 
     const handleError = () => {
@@ -44,13 +49,11 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
       setLoading(false);
       setError(true);
 
-      if (onErrorNext) {
-        setTimeout(() => {
-          onErrorNext();
-        }, 1000);
-      }
+      setTimeout(() => {
+        onErrorNextRef.current?.();
+      }, 1000);
     };
-
+    
     const player = new Plyr(video, {
       autoplay: true,
       muted: false,

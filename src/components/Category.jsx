@@ -7,6 +7,14 @@ import VideoCard from "../components/VideoCard";
 
 import Skeleton from "@mui/material/Skeleton";
 
+
+// category → source mapping
+const sourceMap = {
+  webseries: "ulluhd",
+  viral: "hotwebhd"
+};
+
+
 function Category() {
 
   const shuffle = (arr) => {
@@ -17,11 +25,6 @@ function Category() {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // category → source mapping
-  const sourceMap = {
-    webseries: "ulluhd",
-    viral: "hotwebhd"
-  };
 
   useEffect(() => {
 
