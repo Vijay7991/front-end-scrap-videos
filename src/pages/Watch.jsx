@@ -27,7 +27,6 @@ function Watch() {
   const [hasNext, setHasNext] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const [allVideos, setAllVideos] = useState([]);
   const [shuffledVideos, setShuffledVideos] = useState([]);
 
   const loadedIds = useRef(new Set()); // 🔥 prevent duplicates
@@ -58,7 +57,7 @@ function Watch() {
   /* =========================
      LOAD MORE (CORE)
   ========================= */
-  const loadMore = async (pageNum) => {
+  const loadMore = useCallback(async (pageNum) => {
 
     if (!hasNext || loadingMore) return;
 
@@ -70,18 +69,12 @@ function Watch() {
 
       const newData = res.data.data || [];
 
-      // ❌ remove current video + duplicates
       const filtered = newData.filter(v =>
         v.slug !== slug && !loadedIds.current.has(v._id)
       );
 
-      // mark as loaded
       filtered.forEach(v => loadedIds.current.add(v._id));
 
-      // append
-      setAllVideos(prev => [...prev, ...filtered]);
-
-      // shuffle only new batch
       const shuffledBatch = shuffle(filtered);
 
       setShuffledVideos(prev => [...prev, ...shuffledBatch]);
@@ -94,15 +87,16 @@ function Watch() {
     }
 
     setLoadingMore(false);
-  };
+
+  }, [hasNext, loadingMore, slug]);  // ✅ IMPORTANT
 
   /* =========================
      LOAD VIDEO + RESET
   ========================= */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
 
     setVideo(null);
-    setAllVideos([]);
     setShuffledVideos([]);
     setPage(1);
     setHasNext(true);
@@ -169,17 +163,19 @@ function Watch() {
       }
     );
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
+    const currentLoader = loaderRef.current;
+
+    if (currentLoader) {
+      observer.observe(currentLoader);
     }
 
     return () => {
-      if (loaderRef.current) {
-        observer.unobserve(loaderRef.current);
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
       }
     };
 
-  }, [page, hasNext, loadingMore]);
+  }, [page, hasNext, loadingMore, loadMore]);
 
   /* =========================
      SIDEBAR VIDEOS
