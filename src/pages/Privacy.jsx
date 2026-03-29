@@ -9,7 +9,7 @@ function Privacy() {
             </h2>
 
             <p>
-                At <strong>faltu99.in</strong>, your privacy is important to us.
+                At <strong>bfmilk.com</strong>, your privacy is important to us.
                 This Privacy Policy explains how we collect, use, and protect
                 your information when you visit our website.
             </p>
@@ -87,9 +87,9 @@ function Privacy() {
 
             <p>
                 If you have any questions about this Privacy Policy,
-                please contact us at: 
+                please contact us at:
                 <br />
-                GMAIL: <strong>buffaloesmilk@gmail.com</strong>
+                MAIL: <strong>bfmilk@proton.me</strong>
             </p>
 
         </div>

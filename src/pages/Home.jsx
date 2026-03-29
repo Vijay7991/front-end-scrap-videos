@@ -3,9 +3,9 @@ import { getVideos } from "../api/api";
 
 import VideoCard from "../components/VideoCard";
 import PopularCard from "../components/PopularCard";
-// import SearchBox from "../components/SearchBox";
 import AdBanner from "../components/AdBanner";
 import ContactCard from "../components/ContactCard";
+import Pagination from "../pages/Pagination"; // 🔥 ADD
 
 import { motion } from "framer-motion";
 
@@ -13,7 +13,9 @@ function Home() {
 
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const LIMIT = 40;
 
@@ -24,11 +26,19 @@ function Home() {
     getVideos(page, LIMIT)
       .then(res => {
 
-        setVideos(res.data || []);
+        setVideos(res.data.data || []);
+        setTotalPages(res.data.totalPages || 1); // ✅ IMPORTANT
+
         setLoading(false);
 
+        // 🔥 scroll top on page change
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
 
   }, [page]);
 
@@ -43,7 +53,6 @@ function Home() {
       <div className="row">
 
         {/* LEFT GRID */}
-
         <div className="col-12 col-lg-8">
 
           {loading ? (
@@ -62,21 +71,17 @@ function Home() {
 
               {videos.map((video, index) => (
 
-                <>
-                  <motion.div
-                    key={video._id}
-                    className="col-6 col-md-4 mb-4"
-                  >
-                    <VideoCard video={video} />
-                  </motion.div>
+                <div key={video._id} className="col-6 col-md-4 mb-4">
+
+                  <VideoCard video={video} />
 
                   {(index + 1) % 6 === 0 && (
-                    <div className="col-12">
+                    <div className="col-12 mt-2">
                       <AdBanner />
                     </div>
                   )}
 
-                </>
+                </div>
 
               ))}
 
@@ -84,41 +89,17 @@ function Home() {
 
           )}
 
-          {/* PAGINATION */}
-
-          <div className="d-flex justify-content-center gap-3 mt-4">
-
-            {page > 1 && (
-
-              <button
-                className="btn btn-secondary"
-                onClick={() => setPage(page - 1)}
-              >
-                ← Previous
-              </button>
-
-            )}
-
-            {videos.length === LIMIT && (
-
-              <button
-                className="btn btn-primary"
-                onClick={() => setPage(page + 1)}
-              >
-                Next →
-              </button>
-
-            )}
-
-          </div>
+          {/* 🔥 NEW PAGINATION UI */}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={(p) => setPage(p)}
+          />
 
         </div>
 
         {/* RIGHT SIDEBAR */}
-
         <div className="col-12 col-lg-4">
-
-          {/* <SearchBox /> */}
 
           <AdBanner />
 

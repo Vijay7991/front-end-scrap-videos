@@ -23,7 +23,7 @@ function Footer() {
             <p>
               All content is taken from various other websites. None of the
               files are stored on our own server. All the files we are sharing
-              are already available on the internet. faltu99.in does not own
+              are already available on the internet. bfmilk.com does not own
               any of these provided files and it does not accept responsibility
               for contents hosted on third party websites.
             </p>
@@ -80,7 +80,7 @@ function Footer() {
 
         <div className="footer-bottom">
 
-          Copyright © 2025 - 2026 faltu99.in |
+          Copyright © 2025 - 2026 bfmilk.com |
           High-resolution videos in small file sizes.
 
         </div>

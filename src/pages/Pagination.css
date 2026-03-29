@@ -1,0 +1,13 @@
+.btn-light {
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+}
+
+.btn-primary {
+  background-color: #6366f1;
+  border-color: #6366f1;
+}
+
+button {
+  min-width: 40px;
+}

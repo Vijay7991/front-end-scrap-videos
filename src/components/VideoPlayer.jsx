@@ -3,7 +3,7 @@ import Plyr from "plyr";
 import "plyr/dist/plyr.css";
 import { CircularProgress } from "@mui/material";
 
-function VideoPlayer({ src, poster, onErrorNext }) {
+function VideoPlayer({ src, poster, onErrorNext, onReady }) {
 
   const videoRef = useRef(null);
   const playerRef = useRef(null);
@@ -21,12 +21,20 @@ function VideoPlayer({ src, poster, onErrorNext }) {
 
     // destroy old player
     if (playerRef.current) {
-      playerRef.current.destroy();
+      try {
+        playerRef.current.destroy();
+      } catch (e) {
+        console.warn("Plyr destroy error:", e);
+      }
       playerRef.current = null;
     }
 
     const handleLoaded = () => {
       setLoading(false);
+
+      if (onReady) {
+        onReady(); // 🔥 notify parent
+      }
     };
 
     const handleError = () => {
@@ -81,7 +89,11 @@ function VideoPlayer({ src, poster, onErrorNext }) {
       video.removeEventListener("error", handleError);
 
       if (playerRef.current) {
-        playerRef.current.destroy();
+        try {
+          playerRef.current.destroy();
+        } catch (e) {
+          console.warn("Destroy cleanup error:", e);
+        }
         playerRef.current = null;
       }
 
