@@ -21,8 +21,8 @@ export const searchVideos = (query) =>
 
 /* VIDEOS BY SOURCE */
 
-export const getVideosBySource = (source) =>
-  API.get(`/source/${source}`);
+export const getVideosBySource = (source, page = 1, limit = 20) =>
+  API.get(`/source/${source}?page=${page}&limit=${limit}`);
 
 
 export const getPopularMixed = () =>
