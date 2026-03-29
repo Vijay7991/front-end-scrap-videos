@@ -1,5 +1,5 @@
 import { useState } from "react";
-// import { sendContactMessage } from "../api/api";
+import { sendContactMessage } from "../api/api";
 import { toast } from "react-toastify";
 
 function Contact() {
@@ -18,13 +18,28 @@ function Contact() {
     };
 
     
-    
 
     const handleSubmit = async (e) => {
 
         e.preventDefault();
 
-        toast.info("Contact API not implemented yet");
+        try {
+
+            const res = await sendContactMessage(form);
+
+            toast.success(res.data.message || "Message sent successfully");
+
+            setForm({
+                name: "",
+                email: "",
+                message: ""
+            });
+
+        } catch (error) {
+
+            toast.error("Failed to send message");
+
+        }
 
     };
 

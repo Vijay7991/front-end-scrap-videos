@@ -9,6 +9,11 @@ const API = axios.create({
 export const getVideos = (page = 1, limit = 40) =>
   API.get(`/videos?page=${page}&limit=${limit}`);
 
+/* CONTACT FORM */
+
+export const sendContactMessage = (data) =>
+  API.post("/contact", data);
+
 /* SINGLE VIDEO */
 
 export const getVideo = (slug) =>
