@@ -1,10 +1,9 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-
 import { getVideosBySource, getTrendingVideos } from "../api/api";
 import VideoCard from "../components/VideoCard";
-
+import Pagination from "../pages/Pagination";
 import Skeleton from "@mui/material/Skeleton";
 
 
@@ -16,6 +15,9 @@ const sourceMap = {
 
 
 function Category() {
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const shuffle = (arr) => {
     return [...arr].sort(() => Math.random() - 0.5);
@@ -30,34 +32,37 @@ function Category() {
 
     setLoading(true);
 
-    // if category uses source
     if (sourceMap[category]) {
 
-      getVideosBySource(sourceMap[category])
+      getVideosBySource(sourceMap[category], page, 20)
         .then(res => {
-          setVideos(res.data || []);
+
+          console.log("API RESPONSE:", res.data); // 🔥 ADD THIS
+
+          setVideos(res.data.data || []);
+          setTotalPages(res.data.totalPages || 1);
           setLoading(false);
-        })
-        .catch(err => console.error(err));
+
+        });
 
     }
 
-    // trending = latest videos
     else if (category === "trending") {
 
-      getTrendingVideos(20, 0)
+      getTrendingVideos(page, 20)
         .then(res => {
 
-          const data = res.data || [];
+          const data = res.data.data || [];
           setVideos(shuffle(data));
+          setTotalPages(res.data.totalPages || 1);
           setLoading(false);
 
         })
-        .catch(err => console.error(err));
+        .catch(console.error);
 
     }
 
-  }, [category]);
+  }, [category, page]);
 
   return (
 
@@ -73,6 +78,7 @@ function Category() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
+       
 
         {loading ? (
 
@@ -112,6 +118,14 @@ function Category() {
         )}
 
       </motion.div>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={(p) => {
+        setPage(p);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
 
     </div>
 

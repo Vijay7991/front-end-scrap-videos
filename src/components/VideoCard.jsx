@@ -14,7 +14,7 @@ function VideoCard({ video }) {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }}
     >
-
+      <div className="video-thumb">
       <img
         src={video.thumbnail}
         alt={video.title}
@@ -25,7 +25,7 @@ function VideoCard({ video }) {
           borderRadius: "10px"
         }}
       />
-
+      </div>
       <div className="mt-2 fw-semibold small">
         {video.title}
       </div>

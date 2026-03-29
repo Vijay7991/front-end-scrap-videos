@@ -2,8 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-body{
-  background:#0b0b0b;
-  color:white;
+body, #root {
+  background: #0b1320 !important;
 }
 
+div {
+  background-color: transparent;
+}
+
+.container,
+.container-fluid,
+.row {
+  background: transparent !important;
+}
+
+* {
+  background-color: transparent;
+}

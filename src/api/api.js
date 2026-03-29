@@ -9,6 +9,11 @@ const API = axios.create({
 export const getVideos = (page = 1, limit = 40) =>
   API.get(`/videos?page=${page}&limit=${limit}`);
 
+/* CONTACT FORM */
+
+export const sendContactMessage = (data) =>
+  API.post("/contact", data);
+
 /* SINGLE VIDEO */
 
 export const getVideo = (slug) =>
@@ -21,8 +26,8 @@ export const searchVideos = (query) =>
 
 /* VIDEOS BY SOURCE */
 
-export const getVideosBySource = (source) =>
-  API.get(`/source/${source}`);
+export const getVideosBySource = (source, page = 1, limit = 20) =>
+  API.get(`/source/${source}?page=${page}&limit=${limit}`);
 
 
 export const getPopularMixed = () =>
