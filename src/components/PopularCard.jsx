@@ -34,7 +34,19 @@ function PopularCard() {
 
       {videos.length === 0 ? (
 
-        <p>Loading...</p>
+        Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="card mb-3 p-2 popular-item">
+
+            <div className="d-flex">
+              <div className="popular-thumb skeleton shimmer" />
+              <div className="ms-3 w-100">
+                <div className="skeleton-text shimmer mb-2" />
+                <div className="skeleton-text small shimmer" />
+              </div>
+            </div>
+
+          </div>
+        ))
 
       ) : (
 

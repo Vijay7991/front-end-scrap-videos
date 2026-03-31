@@ -45,9 +45,14 @@ function Footer() {
                 <InstagramIcon />
               </div>
 
-              <div className="social-circle telegram">
+              <a
+                href="https://t.me/+5ew4eXRpGhQ5ODk1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-circle telegram d-flex align-items-center justify-content-center"
+              >
                 <TelegramIcon />
-              </div>
+              </a>
 
               <div className="social-circle facebook">
                 <FacebookIcon />
@@ -55,9 +60,16 @@ function Footer() {
 
             </div>
 
-            <div className="telegram-box">
-              JOIN OUR TELEGRAM CHANNEL
-            </div>
+          
+              <a
+                href="https://t.me/+5ew4eXRpGhQ5ODk1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="telegram-box"
+              >
+                JOIN OUR TELEGRAM CHANNEL
+              </a>
+        
 
           </div>
 

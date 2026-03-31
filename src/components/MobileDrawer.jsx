@@ -137,16 +137,22 @@ function MobileDrawer({ open, close }) {
         }}
       >
 
-        <TelegramIcon
-          sx={{
-            cursor: "pointer",
-            transition: "0.3s",
-            "&:hover": {
-              color: "#2ca5e0",
-              transform: "scale(1.2)"
-            }
-          }}
-        />
+        <a
+          href="https://t.me/+5ew4eXRpGhQ5ODk1"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <TelegramIcon
+            sx={{
+              cursor: "pointer",
+              transition: "0.3s",
+              "&:hover": {
+                color: "#2ca5e0",
+                transform: "scale(1.2)"
+              }
+            }}
+          />
+        </a>
 
         <InstagramIcon
           sx={{

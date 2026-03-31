@@ -6,7 +6,7 @@ import PopularCard from "../components/PopularCard";
 import AdBanner from "../components/AdBanner";
 import ContactCard from "../components/ContactCard";
 import Pagination from "../pages/Pagination"; // 🔥 ADD
-
+import "./Home.css"; // ✅ keep same CSS
 import { motion } from "framer-motion";
 
 function Home() {
@@ -57,17 +57,29 @@ function Home() {
 
           {loading ? (
 
-            <p>Loading...</p>
+            <div className="row">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="col-6 col-md-4 mb-4">
+
+                  <div className="skeleton-card">
+                    <div className="skeleton-thumb shimmer" />
+                    <div className="skeleton-text shimmer" />
+                    <div className="skeleton-text small shimmer" />
+                  </div>
+
+                </div>
+              ))}
+            </div>
 
           ) : (
 
-            <motion.div
-              key={page}
-              className="row"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7 }}
-            >
+              <motion.div
+                key={page}
+                className="row"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
 
               {videos.map((video, index) => (
 

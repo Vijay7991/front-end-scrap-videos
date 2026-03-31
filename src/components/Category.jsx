@@ -4,8 +4,7 @@ import { motion } from "framer-motion";
 import { getVideosBySource, getTrendingVideos } from "../api/api";
 import VideoCard from "../components/VideoCard";
 import Pagination from "../pages/Pagination";
-import Skeleton from "@mui/material/Skeleton";
-
+import "./Category.css"; // ✅ keep same CSS
 
 // category → source mapping
 const sourceMap = {
@@ -44,7 +43,7 @@ function Category() {
           setLoading(false);
 
         });
-
+ 
     }
 
     else if (category === "trending") {
@@ -73,30 +72,30 @@ function Category() {
       </h3>
 
       <motion.div
+        key={page} // 🔥 important for animation on pagination
         className="row"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
       >
-       
 
         {loading ? (
 
-          [...Array(8)].map((_, i) => (
+          <div className="row">
+            {Array.from({ length: 12 }).map((_, i) => (
 
-            <div key={i} className="col-6 col-md-4 col-lg-3 mb-4">
+              <div key={i} className="col-6 col-md-4 col-lg-3 mb-4">
 
-              <Skeleton
-                variant="rectangular"
-                height={180}
-                sx={{ borderRadius: 2 }}
-              />
+                <div className="skeleton-card">
+                  <div className="skeleton-thumb shimmer" />
+                  <div className="skeleton-text shimmer" />
+                  <div className="skeleton-text small shimmer" />
+                </div>
 
-              <Skeleton width="80%" />
+              </div>
 
-            </div>
-
-          ))
+            ))}
+          </div>
 
         ) : (
 
