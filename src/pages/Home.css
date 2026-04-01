@@ -52,3 +52,25 @@
     transform: translateX(300px);
   }
 }
+
+.fancy-title {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #ff4d4d, #ffcc00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  position: relative;
+}
+
+/* underline glow */
+.fancy-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, #ff4d4d, #ffcc00);
+  border-radius: 10px;
+}

@@ -25,7 +25,7 @@ function MobileDrawer({ open, close }) {
 
   const menu = [
     { name: "Home", path: "/", icon: <HomeIcon /> },
-    { name: "Trending", path: "/trending", icon: <TrendingUpIcon /> },
+    { name: "Trending", path: "/category/trending", icon: <TrendingUpIcon /> }, // ✅ FIX
     { name: "Web Series", path: "/category/webseries", icon: <MovieIcon /> },
     { name: "Viral Videos", path: "/category/viral", icon: <WhatshotIcon /> },
     { name: "DMCA Page", path: "/dmca", icon: <GavelIcon /> }

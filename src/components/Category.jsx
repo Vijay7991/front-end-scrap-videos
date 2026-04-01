@@ -67,7 +67,10 @@ function Category() {
 
     <div className="container mt-4">
 
-      <h3 className="mb-4 text-capitalize">
+      <h3 className={`category-title ${category}`}>
+        {category === "viral" && "🔥 "}
+        {category === "webseries" && "🎬 "}
+        {category === "trending" && "🚀 "}
         {category}
       </h3>
 

@@ -46,7 +46,7 @@ function Home() {
 
     <div className="container mt-4">
 
-      <h2 className="mb-4">Latest Videos</h2>
+      <h2 className="fancy-title">Latest Videos</h2>
 
       <AdBanner />
 

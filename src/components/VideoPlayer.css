@@ -1,0 +1,33 @@
+.player-wrapper {
+  max-width: 1000px;
+  margin: auto;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: black;
+}
+
+.player-video {
+  width: 100%;
+  aspect-ratio: 16/9;
+}
+
+.player-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.6);
+  z-index: 10;
+}
+
+.player-error {
+  width: 100%;
+  aspect-ratio: 16/9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  color: white;
+}

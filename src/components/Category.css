@@ -52,3 +52,62 @@
     transform: translateX(300px);
   }
 }
+
+.category-title {
+  font-size: 26px;
+  font-weight: 700;
+  text-transform: capitalize;
+  display: inline-block;
+  padding: 8px 18px;
+  border-radius: 12px;
+  position: relative;
+  color: #fff;
+  letter-spacing: 0.5px;
+  overflow: hidden;
+}
+
+/* 🔥 Shine animation */
+.category-title::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.4),
+    transparent
+  );
+  animation: shine 2.5s infinite;
+}
+
+@keyframes shine {
+  100% {
+    left: 100%;
+  }
+}
+
+/* 🎨 Different colors per category */
+
+/* 🔥 Viral */
+.category-title.viral {
+  background: linear-gradient(135deg, #ff416c, #ff4b2b);
+}
+
+/* 🎬 Webseries */
+.category-title.webseries {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+/* 🚀 Trending */
+.category-title.trending {
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  color: #111;
+}
+
+/* 💡 Default fallback */
+.category-title:not(.viral):not(.webseries):not(.trending) {
+  background: linear-gradient(135deg, #333, #555);
+}
