@@ -60,16 +60,15 @@ function Footer() {
 
             </div>
 
-          
+            <div className="telegram-box">
               <a
                 href="https://t.me/+5ew4eXRpGhQ5ODk1"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="telegram-box"
               >
                 JOIN OUR TELEGRAM CHANNEL
               </a>
-        
+            </div>
 
           </div>
 
