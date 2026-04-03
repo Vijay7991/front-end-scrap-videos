@@ -47,3 +47,11 @@
 .plyr__progress input[type=range] {
   height: 6px;
 }
+
+.plyr__controls {
+  padding: 4px 6px !important;
+}
+
+.plyr__progress {
+  height: 4px !important;
+}
