@@ -9,7 +9,7 @@ function Advertise() {
             </h2>
 
             <p>
-                Reach a global audience with <strong>HotWebHD.com</strong>,
+                Reach a global audience with <strong>bfmilk.com</strong>,
                 one of the fastest-growing streaming platforms. We offer
                 tailored advertising opportunities designed to help brands
                 promote their products and services effectively.
@@ -57,7 +57,7 @@ function Advertise() {
             <p>
                 Send us an email:
                 <br />
-                <strong>buffaloesmilk@gmail.com</strong>
+                <strong>bfmilk@proton.me</strong>
             </p>
 
         </div>
