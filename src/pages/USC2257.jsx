@@ -67,7 +67,7 @@ function USC2257() {
                 immediately using the <strong>"flag as inappropriate"</strong>
                 option available below each video.
                 <br></br>
-                If it doesn't show there you can contact us at by sending an email to: <strong>buffaloesmilk@gmail.com</strong>.
+                If it doesn't show there you can contact us at by sending an email to: <strong>bfmilk@proton.me</strong>.
             </p>
 
 
