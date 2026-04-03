@@ -61,14 +61,12 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
     const player = new Plyr(video, {
       autoplay: true,
       muted: false,
-      clickToPlay: false,   // ✅ IMPORTANT
+      clickToPlay: true,   // ✅ IMPORTANT
       controls: [
         "play",
-        "progress",
-        "current-time",
-        "duration",
-        "mute",
-        "volume",
+        "progress",        // ✅ keep timeline
+        "current-time",    // optional (can remove if needed)
+        "mute",            // ✅ only mute button
         "fullscreen"
       ],
       playsinline: true,   // ✅ IMPORTANT for mobile
