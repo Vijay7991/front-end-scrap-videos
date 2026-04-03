@@ -61,20 +61,17 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
     const player = new Plyr(video, {
       autoplay: true,
       muted: false,
-      seekTime: 10,
+      clickToPlay: false,   // ✅ IMPORTANT
       controls: [
-        "play-large",
-        "rewind",
         "play",
-        "fast-forward",
         "progress",
         "current-time",
         "duration",
         "mute",
         "volume",
-        "settings",
         "fullscreen"
-      ]
+      ],
+      playsinline: true,   // ✅ IMPORTANT for mobile
     });
 
     playerRef.current = player;
@@ -121,6 +118,7 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
           ref={videoRef}
           poster={poster}
           playsInline
+          webkit-playsinline="true"   // ✅ add this
           controls // 🔥 IMPORTANT
           className="player-video"
         />

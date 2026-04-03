@@ -31,3 +31,19 @@
   background: #000;
   color: white;
 }
+
+/* FORCE PROGRESS BAR VISIBLE */
+.plyr--video .plyr__controls {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* PROGRESS BAR HEIGHT FIX */
+.plyr__progress {
+  height: 6px !important;
+}
+
+/* MAKE IT TOUCH FRIENDLY */
+.plyr__progress input[type=range] {
+  height: 6px;
+}
