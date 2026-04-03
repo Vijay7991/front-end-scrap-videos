@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Plyr from "plyr";
 import "plyr/dist/plyr.css";
 import { CircularProgress } from "@mui/material";
+import "./VideoPlayer.css";
 
 function VideoPlayer({ src, poster, onErrorNext, onReady }) {
 
@@ -27,15 +28,17 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
     setLoading(true);
     setError(false);
 
-    // destroy old player
+    // 🔥 destroy old player safely
     if (playerRef.current) {
       try {
         playerRef.current.destroy();
-      } catch (e) {
-        console.warn("Plyr destroy error:", e);
-      }
+      } catch (e) { }
       playerRef.current = null;
     }
+
+    // 🔥 set source manually (IMPORTANT)
+    video.src = src;
+    video.load();
 
     const handleLoaded = () => {
       setLoading(false);
@@ -43,9 +46,6 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
     };
 
     const handleError = () => {
-
-      console.log("❌ Video failed → loading next video");
-
       setLoading(false);
       setError(true);
 
@@ -53,15 +53,23 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
         onErrorNextRef.current?.();
       }, 1000);
     };
-    
+
+    video.addEventListener("loadeddata", handleLoaded);
+    video.addEventListener("error", handleError);
+
+    // 🔥 init plyr AFTER setting src
     const player = new Plyr(video, {
       autoplay: true,
       muted: false,
+      seekTime: 10,
       controls: [
         "play-large",
+        "rewind",
         "play",
+        "fast-forward",
         "progress",
         "current-time",
+        "duration",
         "mute",
         "volume",
         "settings",
@@ -71,21 +79,12 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
 
     playerRef.current = player;
 
-    video.addEventListener("loadeddata", handleLoaded);
-    video.addEventListener("error", handleError);
-
-    // 🔥 force reload video source
-    video.load();
-
-    // 🔥 fallback if browser doesn't fire error
+    // fallback
     const timeout = setTimeout(() => {
-      if (video.readyState === 0) {
-        handleError();
-      }
+      if (video.readyState === 0) handleError();
     }, 5000);
 
     return () => {
-
       clearTimeout(timeout);
 
       video.removeEventListener("loadeddata", handleLoaded);
@@ -94,50 +93,26 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
       if (playerRef.current) {
         try {
           playerRef.current.destroy();
-        } catch (e) {
-          console.warn("Destroy cleanup error:", e);
-        }
+        } catch (e) { }
         playerRef.current = null;
       }
-
     };
 
   }, [src]);
 
   return (
 
-    <div style={{ maxWidth: "1000px", margin: "auto", position: "relative" }}>
+    <div className="player-wrapper">
 
       {loading && !error && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 10
-          }}
-        >
+        <div className="player-loader">
           <CircularProgress />
         </div>
       )}
 
       {error && (
-        <div
-          style={{
-            width: "100%",
-            aspectRatio: "16/9",
-            background: "#000",
-            color: "#fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: "12px",
-            textAlign: "center",
-            padding: "20px"
-          }}
-        >
-          ⚠ This video was removed. Loading next video...
+        <div className="player-error">
+          ⚠ Video removed. Loading next...
         </div>
       )}
 
@@ -146,16 +121,9 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
           ref={videoRef}
           poster={poster}
           playsInline
-          controls
-          style={{
-            width: "100%",
-            aspectRatio: "16/9",
-            borderRadius: "12px",
-            background: "black"
-          }}
-        >
-          <source src={src} type="video/mp4" />
-        </video>
+          controls // 🔥 IMPORTANT
+          className="player-video"
+        />
       )}
 
     </div>

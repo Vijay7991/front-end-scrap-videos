@@ -16,6 +16,7 @@ import Advertise from "./pages/Advertise";
 import USC2257 from "./pages/USC2257";
 import Contact from "./pages/Contact";
 import Search from "./pages/Search";
+import AgeGate from "./pages/AgeGate";
 
 
 import { ToastContainer } from "react-toastify";
@@ -34,6 +35,7 @@ function App() {
   return (
 
     <BrowserRouter>
+      <AgeGate />
       <ToastContainer position="top-right" autoClose={3000} />
 
       <Header openMenu={() => setMenuOpen(true)} />
@@ -44,7 +46,7 @@ function App() {
       />
 
       <Routes>
-
+       
         <Route path="/" element={<Home />} />
         {/* FIXED */}
         <Route path="/watch/:slug" element={<Watch />} />

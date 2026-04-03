@@ -35,3 +35,15 @@
 .popular-item:hover{
   box-shadow:0 4px 10px rgba(0,0,0,0.12);
 }
+
+.popular-thumb.skeleton {
+  width: 100px;
+  height: 70px;
+  border-radius: 8px;
+  background: #1e1e1e;
+}
+
+.skeleton-card:hover {
+  transform: scale(1.02);
+  transition: 0.3s;
+}

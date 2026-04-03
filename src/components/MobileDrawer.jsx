@@ -25,7 +25,7 @@ function MobileDrawer({ open, close }) {
 
   const menu = [
     { name: "Home", path: "/", icon: <HomeIcon /> },
-    { name: "Trending", path: "/trending", icon: <TrendingUpIcon /> },
+    { name: "Trending", path: "/category/trending", icon: <TrendingUpIcon /> }, // ✅ FIX
     { name: "Web Series", path: "/category/webseries", icon: <MovieIcon /> },
     { name: "Viral Videos", path: "/category/viral", icon: <WhatshotIcon /> },
     { name: "DMCA Page", path: "/dmca", icon: <GavelIcon /> }
@@ -137,16 +137,22 @@ function MobileDrawer({ open, close }) {
         }}
       >
 
-        <TelegramIcon
-          sx={{
-            cursor: "pointer",
-            transition: "0.3s",
-            "&:hover": {
-              color: "#2ca5e0",
-              transform: "scale(1.2)"
-            }
-          }}
-        />
+        <a
+          href="https://t.me/+5ew4eXRpGhQ5ODk1"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <TelegramIcon
+            sx={{
+              cursor: "pointer",
+              transition: "0.3s",
+              "&:hover": {
+                color: "#2ca5e0",
+                transform: "scale(1.2)"
+              }
+            }}
+          />
+        </a>
 
         <InstagramIcon
           sx={{
