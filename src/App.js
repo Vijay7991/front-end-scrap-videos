@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Header from "./components/Header";
@@ -18,17 +18,32 @@ import Contact from "./pages/Contact";
 import Search from "./pages/Search";
 import AgeGate from "./pages/AgeGate";
 
-
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-
-
-
+import { disableBasicInspect, detectDevTools } from "./utils/security";
 
 
 
 function App() {
+
+  useEffect(() => {
+    // 1️⃣ Disable right click + inspect
+    const cleanupInspect = disableBasicInspect();
+
+    // 2️⃣ Detect DevTools
+    const cleanupDevTools = detectDevTools(() => {
+      // OPTION 1: Blank page
+      document.body.innerHTML = "";
+
+      // OPTION 2 (better): redirect
+      // window.location.href = "/blocked";
+    });
+
+    return () => {
+      cleanupInspect();
+      cleanupDevTools();
+    };
+  }, []);
 
   const [menuOpen, setMenuOpen] = useState(false);
 
