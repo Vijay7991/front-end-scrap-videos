@@ -3,11 +3,11 @@ import { getVideos } from "../api/api";
 
 import VideoCard from "../components/VideoCard";
 import PopularCard from "../components/PopularCard";
-import AdBanner from "../components/AdBanner";
 import ContactCard from "../components/ContactCard";
 import Pagination from "../pages/Pagination"; // 🔥 ADD
 import "./Home.css"; // ✅ keep same CSS
 import { motion } from "framer-motion";
+import Popunder from "../components/exoclick/Popunder";
 
 function Home() {
 
@@ -43,12 +43,15 @@ function Home() {
   }, [page]);
 
   return (
+  <>
+    
+      <Popunder />  
 
     <div className="container mt-4">
 
       <h2 className="fancy-title">Latest Videos</h2>
 
-      <AdBanner />
+   
 
       <div className="row">
 
@@ -89,7 +92,7 @@ function Home() {
 
                   {(index + 1) % 6 === 0 && (
                     <div className="col-12 mt-2">
-                      <AdBanner />
+                    
                     </div>
                   )}
 
@@ -113,7 +116,7 @@ function Home() {
         {/* RIGHT SIDEBAR */}
         <div className="col-12 col-lg-4">
 
-          <AdBanner />
+       
 
           <div className="mt-0">
             <PopularCard />
@@ -129,7 +132,9 @@ function Home() {
 
     </div>
 
+    </>
   );
+  
 
 }
 
