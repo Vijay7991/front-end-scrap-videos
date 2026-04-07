@@ -15,13 +15,15 @@ function Popunder() {
         script.setAttribute("data-exo-idzone", "5891746");
 
         script.setAttribute("data-exo-popup_force", "true");
+        script.setAttribute("data-exo-popup_fallback", "true");
+
         script.setAttribute("data-exo-new_tab", "true");
         script.setAttribute("data-exo-chrome_enabled", "true");
 
         script.setAttribute("data-exo-frequency_period", "180");
         script.setAttribute("data-exo-frequency_count", "1");
 
-        script.setAttribute("data-exo-trigger_method", "3");
+        script.setAttribute("data-exo-trigger_method", "1");
 
         document.body.appendChild(script);
 
