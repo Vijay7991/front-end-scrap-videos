@@ -4,7 +4,8 @@ import "plyr/dist/plyr.css";
 import { CircularProgress } from "@mui/material";
 import "./VideoPlayer.css";
 
-function VideoPlayer({ src, poster, onErrorNext, onReady }) {
+// ✅ ADDED: onEnded prop
+function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
 
   const videoRef = useRef(null);
   const playerRef = useRef(null);
@@ -14,11 +15,13 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
 
   const onReadyRef = useRef(onReady);
   const onErrorNextRef = useRef(onErrorNext);
+  const onEndedRef = useRef(onEnded); // ✅ ADDED: Ref for the onEnded callback
 
   useEffect(() => {
     onReadyRef.current = onReady;
     onErrorNextRef.current = onErrorNext;
-  }, [onReady, onErrorNext]);
+    onEndedRef.current = onEnded; // ✅ ADDED: Keep ref updated
+  }, [onReady, onErrorNext, onEnded]);
 
   useEffect(() => {
 
@@ -54,13 +57,19 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
       }, 1000);
     };
 
+    // ✅ ADDED: Handler for when the video naturally finishes playing
+    const handleEnded = () => {
+      onEndedRef.current?.();
+    };
+
     video.addEventListener("loadeddata", handleLoaded);
     video.addEventListener("error", handleError);
+    video.addEventListener("ended", handleEnded); // ✅ ADDED: Attach event listener
 
     // 🔥 init plyr AFTER setting src
     const player = new Plyr(video, {
       autoplay: true,
-      muted: false,
+      muted: true,
       clickToPlay: true,   // ✅ IMPORTANT
       controls: [
         "play",
@@ -84,6 +93,7 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
 
       video.removeEventListener("loadeddata", handleLoaded);
       video.removeEventListener("error", handleError);
+      video.removeEventListener("ended", handleEnded); // ✅ ADDED: Cleanup listener
 
       if (playerRef.current) {
         try {
@@ -111,16 +121,17 @@ function VideoPlayer({ src, poster, onErrorNext, onReady }) {
         </div>
       )}
 
-      {!error && (
+      {/* Display toggle to prevent React DOM unmount crashes */}
+      <div style={{ display: error ? "none" : "block", width: "100%", height: "100%" }}>
         <video
           ref={videoRef}
           poster={poster}
           playsInline
-          webkit-playsinline="true"   // ✅ add this
-          controls // 🔥 IMPORTANT
+          webkit-playsinline="true"
+          controls
           className="player-video"
         />
-      )}
+      </div>
 
     </div>
 

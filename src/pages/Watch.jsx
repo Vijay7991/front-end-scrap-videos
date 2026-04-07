@@ -120,15 +120,17 @@ function Watch() {
             <div className="row">
 
                 {/* LEFT VIDEO */}
+                {/* LEFT VIDEO */}
                 <div ref={playerRef} className="col-lg-8" key={video?.slug}>
 
                     {video ? (
 
                         <VideoPlayer
-                            key={video?.playerUrl}   // ✅ stable per video
+                            key={video?.playerUrl}
                             src={video.playerUrl}
                             poster={video.thumbnail}
                             onErrorNext={playNextVideo}
+                            onEnded={playNextVideo}     // ✅ ADDED: Triggers your function when video ends
                             onReady={handleReady}
                         />
 
@@ -141,6 +143,7 @@ function Watch() {
                         />
 
                     )}
+
 
                     <motion.div
                         className="mt-3"
