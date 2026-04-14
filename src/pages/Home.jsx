@@ -7,7 +7,8 @@ import ContactCard from "../components/ContactCard";
 import Pagination from "../pages/Pagination"; // 🔥 ADD
 import "./Home.css"; // ✅ keep same CSS
 import { motion } from "framer-motion";
-import Popunder from "../components/exoclick/Popunder";
+import AdBanner from "../components/exoclick/AdBanner"; // ✅ NEW
+
 
 function Home() {
 
@@ -43,11 +44,26 @@ function Home() {
   }, [page]);
 
   return (
-  <>
-    
-      <Popunder />  
+
 
     <div className="container mt-4">
+      {/* DESKTOP BANNER */}
+      <div className="desktop-only">
+        <AdBanner
+          className="eas6a97888e2"
+          zoneId="5896814"
+          height="90px"
+        />
+      </div>
+
+      {/* MOBILE BANNER */}
+      <div className="mobile-only">
+        <AdBanner
+          className="eas6a97888e10"
+          zoneId="5896824"
+          height="50px"
+        />
+      </div>
 
       <h2 className="fancy-title">Latest Videos</h2>
 
@@ -111,13 +127,28 @@ function Home() {
             onPageChange={(p) => setPage(p)}
           />
 
+          {/* DESKTOP BANNER */}
+          <div className="desktop-only">
+            <AdBanner
+              className="eas6a97888e2"
+              zoneId="5896814"
+              height="90px"
+            />
+          </div>
+
+          {/* MOBILE BANNER */}
+          <div className="mobile-only">
+            <AdBanner
+              className="eas6a97888e10"
+              zoneId="5896824"
+              height="50px"
+            />
+          </div>
+
         </div>
 
         {/* RIGHT SIDEBAR */}
         <div className="col-12 col-lg-4">
-
-       
-
           <div className="mt-0">
             <PopularCard />
           </div>
@@ -125,14 +156,13 @@ function Home() {
           <div className="mt-3">
             <ContactCard />
           </div>
-
+        
         </div>
 
       </div>
 
     </div>
 
-    </>
   );
   
 

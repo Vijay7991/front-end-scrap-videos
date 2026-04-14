@@ -7,7 +7,7 @@ import { getVideo, getVideos } from "../api/api";
 import VideoCard from "../components/VideoCard";
 import VideoPlayer from "../components/VideoPlayer";
 import Pagination from "../pages/Pagination";
-
+import AdBanner from "../components/exoclick/AdBanner";
 import Skeleton from "@mui/material/Skeleton";
 
 function Watch() {
@@ -119,7 +119,7 @@ function Watch() {
 
             <div className="row">
 
-                {/* LEFT VIDEO */}
+            
                 {/* LEFT VIDEO */}
                 <div ref={playerRef} className="col-lg-8" key={video?.slug}>
 
@@ -232,6 +232,24 @@ function Watch() {
 
             </div>
 
+            {/* DESKTOP BANNER */}
+            <div className="desktop-only">
+                <AdBanner
+                    className="eas6a97888e2"
+                    zoneId="5896814"
+                    height="90px"
+                />
+            </div>
+
+            {/* MOBILE BANNER */}
+            <div className="mobile-only">
+                <AdBanner
+                    className="eas6a97888e10"
+                    zoneId="5896824"
+                    height="50px"
+                />
+            </div>
+
             {/* MORE VIDEOS */}
             <div className="mt-5">
 
@@ -287,6 +305,24 @@ function Watch() {
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
                 />
+
+                {/* DESKTOP BANNER */}
+                <div className="desktop-only">
+                    <AdBanner
+                        className="eas6a97888e2"
+                        zoneId="5896814"
+                        height="90px"
+                    />
+                </div>
+
+                {/* MOBILE BANNER */}
+                <div className="mobile-only">
+                    <AdBanner
+                        className="eas6a97888e10"
+                        zoneId="5896824"
+                        height="50px"
+                    />
+                </div>
 
             </div>
 

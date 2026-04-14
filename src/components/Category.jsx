@@ -5,6 +5,7 @@ import { getVideosBySource, getTrendingVideos } from "../api/api";
 import VideoCard from "../components/VideoCard";
 import Pagination from "../pages/Pagination";
 import "./Category.css"; // ✅ keep same CSS
+import AdBanner from "../components/exoclick/AdBanner"; // ✅ NEW
 
 // category → source mapping
 const sourceMap = {
@@ -73,7 +74,23 @@ function Category() {
         {category === "trending" && "🚀 "}
         {category}
       </h3>
+      {/* DESKTOP BANNER */}
+      <div className="desktop-only">
+        <AdBanner
+          className="eas6a97888e2"
+          zoneId="5896814"
+          height="90px"
+        />
+      </div>
 
+      {/* MOBILE BANNER */}
+      <div className="mobile-only">
+        <AdBanner
+          className="eas6a97888e10"
+          zoneId="5896824"
+          height="50px"
+        />
+      </div>
       <motion.div
         key={page} // 🔥 important for animation on pagination
         className="row"
@@ -128,6 +145,24 @@ function Category() {
         window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       />
+
+      {/* DESKTOP BANNER */}
+      <div className="desktop-only">
+        <AdBanner
+          className="eas6a97888e2"
+          zoneId="5896814"
+          height="90px"
+        />
+      </div>
+
+      {/* MOBILE BANNER */}
+      <div className="mobile-only">
+        <AdBanner
+          className="eas6a97888e10"
+          zoneId="5896824"
+          height="50px"
+        />
+      </div>
 
     </div>
 
