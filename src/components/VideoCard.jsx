@@ -15,8 +15,13 @@ function VideoCard({ video }) {
       }}
     >
       <div className="video-thumb">
-      <img
-        src={video.thumbnail}
+        <img
+          src={
+            video.thumbnail &&
+              !video.thumbnail.startsWith("data:image")
+              ? video.thumbnail
+              : "/savita.jpg"
+          }
         alt={video.title}
         style={{
           width: "100%",
