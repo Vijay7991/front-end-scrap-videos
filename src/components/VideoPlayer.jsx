@@ -111,7 +111,7 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
         console.log("still loading...");
         handleError();
       }
-    }, 12000);
+    }, 25000);
 
     return () => {
       clearTimeout(timeout);
