@@ -21,7 +21,7 @@ import AgeGate from "./pages/AgeGate";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { disableBasicInspect, detectDevTools } from "./utils/security";
-
+import PopunderScript from "./components/exoclick/mobile/PopunderScript";
 
 
 function App() {
@@ -50,6 +50,9 @@ function App() {
   return (
 
     <BrowserRouter>
+
+      <PopunderScript />
+      
       <AgeGate />
       <ToastContainer position="top-right" autoClose={3000} />
 

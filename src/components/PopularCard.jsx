@@ -72,7 +72,12 @@ function PopularCard() {
             <div className="d-flex">
 
               <img
-                src={video.thumbnail}
+                src={
+                  video.thumbnail &&
+                    !video.thumbnail.startsWith("data:image")
+                    ? video.thumbnail
+                    : "/savita.jpg"
+                }
                 alt={video.title}
                 className="popular-thumb"
                 loading="lazy"

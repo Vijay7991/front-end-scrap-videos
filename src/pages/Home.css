@@ -74,3 +74,27 @@
   background: linear-gradient(90deg, #ff4d4d, #ffcc00);
   border-radius: 10px;
 }
+
+/* डेस्कटॉप पर मोबाइल एड को पूरी तरह गायब करने के लिए */
+@media (min-width: 769px) {
+    .mobile-only {
+        display: none !important;
+    }
+    .desktop-only {
+        display: block;
+        width: 100%;
+        max-width: 1000px; /* या आपकी वेबसाइट की जो भी विड्थ है */
+        margin: 0 auto;    /* इसे सेंटर में रखने के लिए */
+    }
+}
+
+/* मोबाइल पर डेस्कटॉप एड को गायब करने के लिए */
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+    .mobile-only {
+        display: block;
+        width: 100%;
+    }
+}

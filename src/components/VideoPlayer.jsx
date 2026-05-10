@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import Plyr from "plyr";
 import "plyr/dist/plyr.css";
-import { CircularProgress } from "@mui/material";
+
 import "./VideoPlayer.css";
+import RunningLoader from "./common/RunningLoader";
+
 
 // ✅ ADDED: onEnded prop
 function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
@@ -10,12 +12,13 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
   const onReadyRef = useRef(onReady);
   const onErrorNextRef = useRef(onErrorNext);
-  const onEndedRef = useRef(onEnded); // ✅ ADDED: Ref for the onEnded callback
+  const onEndedRef = useRef(onEnded); 
+
+  const [loading, setLoading] = useState(true);
+  const [buffering, setBuffering] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     onReadyRef.current = onReady;
@@ -29,7 +32,9 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
     if (!video || !src) return;
 
     setLoading(true);
+    setBuffering(false);
     setError(false);
+    
 
     // 🔥 destroy old player safely
     if (playerRef.current) {
@@ -45,7 +50,19 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
 
     const handleLoaded = () => {
       setLoading(false);
+      setBuffering(false);
+      setError(false);
       onReadyRef.current?.();
+    };
+
+    const handleWaiting = () => {
+      if (!loading) {
+        setBuffering(true);
+      }
+    };
+    const handleCanPlay = () => {
+      setLoading(false);
+      setBuffering(false);
     };
 
     const handleError = () => {
@@ -57,20 +74,25 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
       }, 1000);
     };
 
+
     // ✅ ADDED: Handler for when the video naturally finishes playing
     const handleEnded = () => {
       onEndedRef.current?.();
     };
 
-    video.addEventListener("loadeddata", handleLoaded);
+    video.addEventListener("loadedmetadata", handleLoaded);
+    video.addEventListener("canplay", handleCanPlay);
+    video.addEventListener("waiting", handleWaiting);
+    video.addEventListener("stalled", handleWaiting);
     video.addEventListener("error", handleError);
-    video.addEventListener("ended", handleEnded); // ✅ ADDED: Attach event listener
+    video.addEventListener("ended", handleEnded);
 
     // 🔥 init plyr AFTER setting src
     const player = new Plyr(video, {
       autoplay: true,
       muted: true,
-      clickToPlay: true,   // ✅ IMPORTANT
+      clickToPlay: true,
+      resetOnEnd: false, // ✅ IMPORTANT
       controls: [
         "play",
         "progress",        // ✅ keep timeline
@@ -83,17 +105,23 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
 
     playerRef.current = player;
 
-    // fallback
+    // fallback 15 sec
     const timeout = setTimeout(() => {
-      if (video.readyState === 0) handleError();
-    }, 5000);
+      if (video.readyState < 2) {
+        console.log("still loading...");
+        handleError();
+      }
+    }, 25000);
 
     return () => {
       clearTimeout(timeout);
 
-      video.removeEventListener("loadeddata", handleLoaded);
+      video.removeEventListener("loadedmetadata", handleLoaded);
+      video.removeEventListener("canplay", handleCanPlay);
+      video.removeEventListener("waiting", handleWaiting);
+      video.removeEventListener("stalled", handleWaiting);
       video.removeEventListener("error", handleError);
-      video.removeEventListener("ended", handleEnded); // ✅ ADDED: Cleanup listener
+      video.removeEventListener("ended", handleEnded);
 
       if (playerRef.current) {
         try {
@@ -111,7 +139,13 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
 
       {loading && !error && (
         <div className="player-loader">
-          <CircularProgress />
+          <RunningLoader text="Loading video..." />
+        </div>
+      )}
+
+      {buffering && !error && (
+        <div className="player-loader">
+          <RunningLoader text="Buffering..." />
         </div>
       )}
 

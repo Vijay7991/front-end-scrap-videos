@@ -1,0 +1,65 @@
+.running-loader-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+.running-track {
+  width: 180px;
+  height: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.runner {
+  position: absolute;
+  left: -40px;
+  top: 0;
+  font-size: 48px;
+  animation: runnerMove 1.6s linear infinite;
+}
+
+.loading-text {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes runnerMove {
+  0% {
+    left: -40px;
+    transform: scaleX(1);
+  }
+
+  49% {
+    transform: scaleX(1);
+  }
+
+  50% {
+    transform: scaleX(-1);
+  }
+
+  100% {
+    left: 180px;
+    transform: scaleX(-1);
+  }
+}
+
+@keyframes blink {
+  0%,100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
