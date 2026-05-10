@@ -1,3 +1,5 @@
+/* Base player layout — detailed styles live in player-enhancements.css */
+
 .player-wrapper {
   max-width: 1000px;
   margin: auto;
@@ -5,6 +7,7 @@
   border-radius: 12px;
   overflow: hidden;
   background: black;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .player-video {
@@ -18,7 +21,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 10;
 }
 
@@ -30,28 +33,36 @@
   align-items: center;
   background: #000;
   color: white;
+  font-size: 16px;
+  font-weight: 500;
 }
 
-/* FORCE PROGRESS BAR VISIBLE */
+/* Plyr overrides */
 .plyr--video .plyr__controls {
   opacity: 1 !important;
   visibility: visible !important;
 }
 
-/* PROGRESS BAR HEIGHT FIX */
-.plyr__progress {
-  height: 6px !important;
-}
-
-/* MAKE IT TOUCH FRIENDLY */
-.plyr__progress input[type=range] {
-  height: 6px;
-}
-
 .plyr__controls {
-  padding: 4px 6px !important;
+  padding: 4px 8px !important;
 }
 
 .plyr__progress {
-  height: 4px !important;
+  height: 5px !important;
+  cursor: pointer;
+}
+
+.plyr__progress input[type=range] {
+  height: 5px;
+}
+
+/* Volume slider — show on desktop only */
+.plyr__volume {
+  max-width: 80px;
+}
+
+@media (max-width: 768px) {
+  .plyr__volume {
+    display: none;
+  }
 }

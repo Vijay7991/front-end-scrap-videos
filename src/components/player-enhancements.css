@@ -1,13 +1,4 @@
-/* Enhanced Player Wrapper with Theater Mode */
-.player-wrapper {
-  max-width: 1000px;
-  margin: auto;
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  background: black;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* Theater mode & enhanced controls */
 
 .player-wrapper.theater-mode {
   position: fixed;
@@ -25,55 +16,6 @@
 
 .player-wrapper.theater-mode .player-video {
   height: 100%;
-}
-
-/* Video Element */
-.player-video {
-  width: 100%;
-  aspect-ratio: 16/9;
-  transition: height 0.4s ease;
-}
-
-/* Loading & Error States */
-.player-loader {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 10;
-}
-
-.player-error {
-  width: 100%;
-  aspect-ratio: 16/9;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #000;
-  color: white;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-/* Progress Bar */
-.plyr--video .plyr__controls {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-.plyr__progress {
-  height: 6px !important;
-  cursor: pointer;
-}
-
-.plyr__progress input[type=range] {
-  height: 6px;
-}
-
-.plyr__controls {
-  padding: 4px 6px !important;
 }
 
 /* Custom Controls Container */
@@ -176,28 +118,6 @@
 .custom-control-btn:focus-visible {
   outline: 2px solid #4caf50;
   outline-offset: 2px;
-}
-
-/* Force Plyr controls visible */
-.plyr__controls {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-.plyr__progress {
-  height: 6px !important;
-}
-
-.plyr__progress input[type=range] {
-  height: 6px;
-}
-
-.plyr__controls {
-  padding: 4px 6px !important;
-}
-
-.plyr__progress {
-  height: 4px !important;
 }
 
 /* Smooth transitions */

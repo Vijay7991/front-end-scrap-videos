@@ -3,10 +3,9 @@ import Plyr from "plyr";
 import "plyr/dist/plyr.css";
 
 import "./VideoPlayer.css";
+import "./player-enhancements.css";
 import RunningLoader from "./common/RunningLoader";
 
-
-// ✅ ADDED: onEnded prop
 function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
 
   const videoRef = useRef(null);
@@ -14,7 +13,9 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
 
   const onReadyRef = useRef(onReady);
   const onErrorNextRef = useRef(onErrorNext);
-  const onEndedRef = useRef(onEnded); 
+  const onEndedRef = useRef(onEnded);
+  // Track loading state in a ref so event handler closures always see the current value
+  const loadingRef = useRef(true);
 
   const [loading, setLoading] = useState(true);
   const [buffering, setBuffering] = useState(false);
@@ -23,7 +24,7 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
   useEffect(() => {
     onReadyRef.current = onReady;
     onErrorNextRef.current = onErrorNext;
-    onEndedRef.current = onEnded; // ✅ ADDED: Keep ref updated
+    onEndedRef.current = onEnded;
   }, [onReady, onErrorNext, onEnded]);
 
   useEffect(() => {
@@ -31,24 +32,21 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
     const video = videoRef.current;
     if (!video || !src) return;
 
+    loadingRef.current = true;
     setLoading(true);
     setBuffering(false);
     setError(false);
-    
 
-    // 🔥 destroy old player safely
     if (playerRef.current) {
-      try {
-        playerRef.current.destroy();
-      } catch (e) { }
+      try { playerRef.current.destroy(); } catch (e) { }
       playerRef.current = null;
     }
 
-    // 🔥 set source manually (IMPORTANT)
     video.src = src;
     video.load();
 
     const handleLoaded = () => {
+      loadingRef.current = false;
       setLoading(false);
       setBuffering(false);
       setError(false);
@@ -56,77 +54,86 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
     };
 
     const handleWaiting = () => {
-      if (!loading) {
+      // Only show buffering spinner after initial load is done
+      if (!loadingRef.current) {
         setBuffering(true);
       }
     };
+
     const handleCanPlay = () => {
+      loadingRef.current = false;
       setLoading(false);
       setBuffering(false);
     };
 
+    const handlePlaying = () => {
+      setBuffering(false);
+    };
+
     const handleError = () => {
+      loadingRef.current = false;
       setLoading(false);
       setError(true);
-
       setTimeout(() => {
         onErrorNextRef.current?.();
       }, 1000);
     };
 
-
-    // ✅ ADDED: Handler for when the video naturally finishes playing
     const handleEnded = () => {
       onEndedRef.current?.();
     };
 
     video.addEventListener("loadedmetadata", handleLoaded);
     video.addEventListener("canplay", handleCanPlay);
+    video.addEventListener("playing", handlePlaying);
     video.addEventListener("waiting", handleWaiting);
     video.addEventListener("stalled", handleWaiting);
     video.addEventListener("error", handleError);
     video.addEventListener("ended", handleEnded);
 
-    // 🔥 init plyr AFTER setting src
     const player = new Plyr(video, {
       autoplay: true,
       muted: true,
       clickToPlay: true,
-      resetOnEnd: false, // ✅ IMPORTANT
+      resetOnEnd: false,
+      keyboard: { focused: true, global: false },
+      tooltips: { controls: true, seek: true },
       controls: [
         "play",
-        "progress",        // ✅ keep timeline
-        "current-time",    // optional (can remove if needed)
-        "mute",            // ✅ only mute button
-        "fullscreen"
+        "progress",
+        "current-time",
+        "duration",
+        "mute",
+        "volume",
+        "settings",
+        "pip",
+        "fullscreen",
       ],
-      playsinline: true,   // ✅ IMPORTANT for mobile
+      settings: ["speed"],
+      speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+      playsinline: true,
     });
 
     playerRef.current = player;
 
-    // fallback 15 sec
     const timeout = setTimeout(() => {
       if (video.readyState < 2) {
-        console.log("still loading...");
         handleError();
       }
     }, 25000);
 
     return () => {
       clearTimeout(timeout);
-
       video.removeEventListener("loadedmetadata", handleLoaded);
       video.removeEventListener("canplay", handleCanPlay);
+      video.removeEventListener("playing", handlePlaying);
       video.removeEventListener("waiting", handleWaiting);
       video.removeEventListener("stalled", handleWaiting);
       video.removeEventListener("error", handleError);
       video.removeEventListener("ended", handleEnded);
 
       if (playerRef.current) {
-        try {
-          playerRef.current.destroy();
-        } catch (e) { }
+        try { playerRef.current.destroy(); } catch (e) { }
         playerRef.current = null;
       }
     };
@@ -143,7 +150,7 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
         </div>
       )}
 
-      {buffering && !error && (
+      {buffering && !loading && !error && (
         <div className="player-loader">
           <RunningLoader text="Buffering..." />
         </div>
@@ -155,7 +162,6 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
         </div>
       )}
 
-      {/* Display toggle to prevent React DOM unmount crashes */}
       <div style={{ display: error ? "none" : "block", width: "100%", height: "100%" }}>
         <video
           ref={videoRef}
