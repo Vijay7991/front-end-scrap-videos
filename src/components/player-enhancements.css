@@ -1,0 +1,213 @@
+/* Enhanced Player Wrapper with Theater Mode */
+.player-wrapper {
+  max-width: 1000px;
+  margin: auto;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: black;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.player-wrapper.theater-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  z-index: 999;
+}
+
+.player-wrapper.theater-mode .player-video {
+  height: 100%;
+}
+
+/* Video Element */
+.player-video {
+  width: 100%;
+  aspect-ratio: 16/9;
+  transition: height 0.4s ease;
+}
+
+/* Loading & Error States */
+.player-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 10;
+}
+
+.player-error {
+  width: 100%;
+  aspect-ratio: 16/9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Progress Bar */
+.plyr--video .plyr__controls {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.plyr__progress {
+  height: 6px !important;
+  cursor: pointer;
+}
+
+.plyr__progress input[type=range] {
+  height: 6px;
+}
+
+.plyr__controls {
+  padding: 4px 6px !important;
+}
+
+/* Custom Controls Container */
+.custom-player-controls {
+  position: absolute;
+  bottom: 60px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: transparent;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.player-wrapper:hover .custom-player-controls,
+.player-wrapper:focus-within .custom-player-controls {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .custom-player-controls {
+    opacity: 1;
+  }
+}
+
+/* Custom Control Buttons */
+.custom-control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 6px;
+  color: #000;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.quality-btn,
+.speed-btn {
+  padding: 8px 14px;
+}
+
+.custom-control-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.custom-control-btn:active {
+  transform: scale(0.95);
+}
+
+/* Desktop only - fade on hover */
+@media (min-width: 769px) {
+  .custom-player-controls {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .player-wrapper:hover .custom-player-controls {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Mobile - always visible */
+@media (max-width: 768px) {
+  .custom-player-controls {
+    bottom: 50px;
+    right: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .custom-control-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .quality-btn,
+  .speed-btn {
+    padding: 6px 10px;
+  }
+}
+
+/* Keyboard focus styles for accessibility */
+.custom-control-btn:focus-visible {
+  outline: 2px solid #4caf50;
+  outline-offset: 2px;
+}
+
+/* Force Plyr controls visible */
+.plyr__controls {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.plyr__progress {
+  height: 6px !important;
+}
+
+.plyr__progress input[type=range] {
+  height: 6px;
+}
+
+.plyr__controls {
+  padding: 4px 6px !important;
+}
+
+.plyr__progress {
+  height: 4px !important;
+}
+
+/* Smooth transitions */
+@media (prefers-reduced-motion: reduce) {
+  .player-wrapper,
+  .custom-player-controls,
+  .custom-control-btn,
+  .quality-dropdown,
+  .speed-dropdown,
+  .keyboard-help-overlay {
+    transition: none !important;
+  }
+}
