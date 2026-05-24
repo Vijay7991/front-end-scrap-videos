@@ -1,4 +1,5 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
+import { ThemeProvider } from "./context/ThemeContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Header from "./components/Header";
@@ -49,6 +50,7 @@ function App() {
 
   return (
 
+    <ThemeProvider>
     <BrowserRouter>
 
       <PopunderScript />
@@ -86,6 +88,7 @@ function App() {
       <ScrollTop />
 
     </BrowserRouter>
+    </ThemeProvider>
 
   );
 

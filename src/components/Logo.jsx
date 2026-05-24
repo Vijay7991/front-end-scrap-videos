@@ -1,25 +1,13 @@
-import { Typography } from "@mui/material";
+import { Link } from "react-router-dom";
+import "./Logo.css";
 
 function Logo() {
-
   return (
-
-    <Typography
-      sx={{
-        fontSize: "28px",
-        fontWeight: "bold",
-        color: "transparent",
-        WebkitTextStroke: "1px white",
-        background: "linear-gradient(45deg,#fff,#ff80ff)",
-        WebkitBackgroundClip: "text",
-        letterSpacing: "2px"
-      }}
-    >
-      BFMILK.COM
-    </Typography>
-
+    <Link to="/" className="site-logo" aria-label="BFMILK.COM — Go to home">
+      <span className="site-logo-text">BFMILK</span>
+      <span className="site-logo-dot">.COM</span>
+    </Link>
   );
-
 }
 
 export default Logo;

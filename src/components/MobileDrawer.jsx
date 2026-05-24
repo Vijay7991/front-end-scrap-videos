@@ -20,8 +20,12 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import FacebookIcon from "@mui/icons-material/Facebook";
 
 import { NavLink } from "react-router-dom";
+import { useAppTheme } from "../context/ThemeContext";
 
 function MobileDrawer({ open, close }) {
+
+  const { theme: appTheme } = useAppTheme();
+  const isLight = appTheme === "light";
 
   const menu = [
     { name: "Home", path: "/", icon: <HomeIcon /> },
@@ -40,10 +44,13 @@ function MobileDrawer({ open, close }) {
       PaperProps={{
         sx: {
           width: 280,
-          background: "linear-gradient(180deg,#0f0f0f,#1a1a1a)",
-          color: "#fff",
+          background: isLight
+            ? "linear-gradient(180deg,#ffffff,#f4f5f8)"
+            : "linear-gradient(180deg,#0f0f1a,#111827)",
+          color: isLight ? "#1a1a2e" : "#fff",
           display: "flex",
-          flexDirection: "column"
+          flexDirection: "column",
+          transition: "background 0.35s ease, color 0.35s ease"
         }
       }}
     >
@@ -54,7 +61,7 @@ function MobileDrawer({ open, close }) {
         sx={{
           p: 3,
           textAlign: "center",
-          borderBottom: "1px solid #333"
+          borderBottom: isLight ? "1px solid #e0e3ec" : "1px solid #333"
         }}
       >
 
@@ -122,7 +129,7 @@ function MobileDrawer({ open, close }) {
       </List>
 
 
-      <Divider sx={{ background: "#333", my: 2 }} />
+      <Divider sx={{ background: isLight ? "#e0e3ec" : "#333", my: 2 }} />
 
 
       {/* SOCIAL MEDIA */}

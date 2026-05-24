@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getVideos } from "../api/api";
 
 import VideoCard from "../components/VideoCard";
@@ -18,6 +18,12 @@ function Home() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  /* When pagination is clicked we set this flag; after the new
+     batch loads we smoothly scroll the grid into view (instead of
+     jumping to the top of the page on first render). */
+  const [shouldScroll, setShouldScroll] = useState(false);
+  const gridRef = useRef(null);
+
   const LIMIT = 40;
 
   useEffect(() => {
@@ -32,8 +38,19 @@ function Home() {
 
         setLoading(false);
 
-        // 🔥 scroll top on page change
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (shouldScroll) {
+          // wait one paint so the new grid is in the DOM
+          setTimeout(() => {
+            if (!gridRef.current) return;
+            const yOffset = -70; // sticky header
+            const y =
+              gridRef.current.getBoundingClientRect().top +
+              window.pageYOffset +
+              yOffset;
+            window.scrollTo({ top: y, behavior: "smooth" });
+          }, 30);
+          setShouldScroll(false);
+        }
 
       })
       .catch(err => {
@@ -41,7 +58,12 @@ function Home() {
         setLoading(false);
       });
 
-  }, [page]);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handlePageChange = (p) => {
+    setShouldScroll(true);
+    setPage(p);
+  };
 
   return (
 
@@ -67,9 +89,9 @@ function Home() {
 
       <h2 className="fancy-title">Latest Videos</h2>
 
-   
 
-      <div className="row">
+
+      <div className="row" ref={gridRef}>
 
         {/* LEFT GRID */}
         <div className="col-12 col-lg-8">
@@ -124,7 +146,7 @@ function Home() {
           <Pagination
             page={page}
             totalPages={totalPages}
-            onPageChange={(p) => setPage(p)}
+            onPageChange={handlePageChange}
           />
 
           {/* DESKTOP BANNER */}

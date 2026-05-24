@@ -1,186 +1,138 @@
-import {
-  AppBar,
-  Toolbar,
-  IconButton,
-  Dialog,
-  InputBase,
-  Box,
-  useMediaQuery
-} from "@mui/material";
-
+import { useMediaQuery } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
+import CloseIcon from "@mui/icons-material/Close";
+import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
+import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 
-import { useTheme } from "@mui/material/styles";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useAppTheme } from "../context/ThemeContext";
 
 import Logo from "./Logo";
+import "./Header.css";
+
+const menu = [
+  { name: "Home",        path: "/" },
+  { name: "Trending",    path: "/category/trending" },
+  { name: "Web Series",  path: "/category/webseries" },
+  { name: "Viral Videos",path: "/category/viral" },
+  { name: "DMCA",        path: "/dmca" },
+];
 
 function Header({ openMenu }) {
 
+  const { theme: appTheme, toggleTheme } = useAppTheme();
   const [searchOpen, setSearchOpen] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery]           = useState("");
+  const [scrolled, setScrolled]     = useState(false);
 
-  const navigate = useNavigate();
-  const location = useLocation();
+  const searchRef = useRef(null);
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const isMobile  = useMediaQuery("(max-width:960px)");
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  /* close search on route change */
+  useEffect(() => { setSearchOpen(false); setQuery(""); }, [location]);
+
+  /* track scroll for shadow */
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* autofocus search input */
+  useEffect(() => {
+    if (searchOpen) setTimeout(() => searchRef.current?.focus(), 80);
+  }, [searchOpen]);
 
   const handleSearch = () => {
     if (!query.trim()) return;
-    navigate(`/search?q=${query}`);
+    navigate(`/search?q=${encodeURIComponent(query.trim())}`);
     setQuery("");
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") handleSearch();
-  };
-
-  useEffect(() => {
     setSearchOpen(false);
-  }, [location]);
+  };
 
-  const menu = [
-    { name: "HOME", path: "/" },
-    { name: "TRENDING", path: "/category/trending" },
-    { name: "WEB SERIES", path: "/category/webseries" },
-    { name: "VIRAL VIDEOS", path: "/category/viral" },
-    { name: "DMCA PAGE", path: "/dmca" }
-  ];
+  const isLight = appTheme === "light";
 
   return (
+    <header className={`site-header${scrolled ? " scrolled" : ""}${isLight ? " light" : " dark"}`}>
 
-    <AppBar
-      position="sticky"
-      sx={{
-        background: "linear-gradient(90deg,#ff0080,#6a00ff)"
-      }}
-    >
+      <div className="header-inner">
 
-      <Toolbar sx={{ justifyContent: "space-between" }}>
-
-        {/* MOBILE MENU BUTTON */}
-
-        {isMobile && (
-          <IconButton
-            onClick={openMenu}
-            sx={{
-              border: "1px solid #fff",
-              borderRadius: "8px",
-              color: "#fff"
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
-        )}
-
-        {/* LOGO */}
-
-        <Box
-          sx={{
-            width: { xs: "auto", md: "40%" },
-            display: "flex",
-            alignItems: "center"
-          }}
-        >
+        {/* ── LEFT: hamburger (mobile) + logo ── */}
+        <div className="header-left">
+          {isMobile && (
+            <button className="hdr-icon-btn menu-btn" onClick={openMenu} aria-label="Open menu">
+              <MenuIcon fontSize="small" />
+            </button>
+          )}
           <Logo />
-        </Box>
+        </div>
 
-
-        {/* DESKTOP MENU */}
-
+        {/* ── CENTER: desktop nav ── */}
         {!isMobile && (
-
-          <Box
-            sx={{
-              display: "flex",
-              gap: 4,
-              alignItems: "center",
-              justifyContent: "center",
-              flexGrow: 1
-            }}
-          >
-
-            {menu.map((item) => (
-
+          <nav className="header-nav">
+            {menu.map(item => (
               <NavLink
-                key={item.name}
+                key={item.path}
                 to={item.path}
-                style={({ isActive }) => ({
-                  textDecoration: "none",
-                  color: "#fff",
-                  fontWeight: isActive ? "bold" : "normal",
-                  borderBottom: isActive ? "2px solid #fff" : "none",
-                  paddingBottom: "3px"
-                })}
+                className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
               >
                 {item.name}
               </NavLink>
-
             ))}
-
-          </Box>
-
+          </nav>
         )}
 
+        {/* ── RIGHT: theme toggle + search ── */}
+        <div className="header-right">
 
-        {/* SEARCH */}
+          {/* Search bar (expands inline) */}
+          <div className={`search-bar${searchOpen ? " open" : ""}`}>
+            <input
+              ref={searchRef}
+              type="text"
+              value={query}
+              placeholder="Search videos…"
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSearch()}
+            />
+            {searchOpen && (
+              <button className="hdr-icon-btn" onClick={() => { setSearchOpen(false); setQuery(""); }} aria-label="Close search">
+                <CloseIcon fontSize="small" />
+              </button>
+            )}
+          </div>
 
-        <IconButton
-          sx={{ color: "#fff" }}
-          onClick={() => setSearchOpen(true)}
-        >
-          <SearchIcon />
-        </IconButton>
+          <button
+            className="hdr-icon-btn search-btn"
+            onClick={searchOpen ? handleSearch : () => setSearchOpen(true)}
+            aria-label="Search"
+          >
+            <SearchIcon fontSize="small" />
+          </button>
 
-      </Toolbar>
+          {/* Theme toggle */}
+          <button
+            className="hdr-icon-btn theme-btn"
+            onClick={toggleTheme}
+            title={isLight ? "Switch to Dark Mode" : "Switch to Light Mode"}
+            aria-label="Toggle theme"
+          >
+            <span className="theme-icon">
+              {isLight
+                ? <DarkModeRoundedIcon fontSize="small" />
+                : <LightModeRoundedIcon fontSize="small" />}
+            </span>
+          </button>
 
+        </div>
 
-      {/* SEARCH DIALOG */}
+      </div>
 
-      <Dialog
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-
-        <Box
-          sx={{
-            p: 2,
-            display: "flex",
-            gap: 1,
-            width: "100%",
-            alignItems: "center"
-          }}
-        >
-
-          <InputBase
-            autoFocus
-            fullWidth
-            value={query}
-            placeholder="Search videos..."
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyPress}
-            sx={{
-              borderBottom: "1px solid #ccc",
-              pb: 1,
-              fontSize: "16px"
-            }}
-          />
-
-          <IconButton onClick={handleSearch}>
-            <SearchIcon />
-          </IconButton>
-
-        </Box>
-
-      </Dialog>
-
-    </AppBar>
-
+    </header>
   );
 }
 

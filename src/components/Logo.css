@@ -1,0 +1,41 @@
+.site-logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font-weight: 900;
+  font-size: 24px;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  user-select: none;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.site-logo:hover {
+  transform: scale(1.03);
+  filter: brightness(1.1);
+}
+
+.site-logo:active { transform: scale(0.97); }
+
+.site-logo-text {
+  background: var(--gradient-primary, linear-gradient(135deg, #a78bfa 0%, #ff5ec3 100%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-weight: 900;
+}
+
+.site-logo-dot {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted, #8a97b8);
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 480px) {
+  .site-logo     { font-size: 20px; }
+  .site-logo-dot { font-size: 12px; }
+}
