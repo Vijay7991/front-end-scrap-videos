@@ -2,15 +2,24 @@ import { useEffect, useRef, useState } from "react";
 import Plyr from "plyr";
 import "plyr/dist/plyr.css";
 
+import PlayArrowRounded from "@mui/icons-material/PlayArrowRounded";
+import PauseRounded from "@mui/icons-material/PauseRounded";
+import FastForwardRounded from "@mui/icons-material/FastForwardRounded";
+import FastRewindRounded from "@mui/icons-material/FastRewindRounded";
+
 import "./VideoPlayer.css";
 import "./player-enhancements.css";
 
+const SIDE_SEEK = 10; // seconds skipped per double-tap / J-L
+const TAP_WINDOW = 260; // ms to wait before treating a tap as a single tap
+const ACCUM_WINDOW = 800; // ms during which repeated taps accumulate
+
 /**
  * VideoPlayer
- *  - Better animated loader / buffering UI
- *  - Keyboard shortcuts: Space, ←/→, ↑/↓, F, M
- *  - Double-tap left / right (mobile) skips ±10s
- *  - No download / no PiP context menu
+ *  - YouTube-style gestures: single tap = play/pause, double-tap left/right = skip ±10s,
+ *    double-click center = fullscreen (desktop). Taps on the same side accumulate.
+ *  - Keyboard: Space/K, ←/→ (5s), J/L (10s), ↑/↓ volume, M mute, F fullscreen.
+ *  - Sleek gradient-ring loader + lightweight buffering spinner.
  */
 function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
   const videoRef = useRef(null);
@@ -25,7 +34,8 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
   const [loading, setLoading] = useState(true);
   const [buffering, setBuffering] = useState(false);
   const [error, setError] = useState(false);
-  const [seekHint, setSeekHint] = useState(null); // { dir: 'fwd' | 'back' }
+  const [seekHint, setSeekHint] = useState(null); // { dir: 'fwd' | 'back', amount }
+  const [centerIcon, setCenterIcon] = useState(null); // { type: 'play' | 'pause', id }
 
   useEffect(() => {
     onReadyRef.current = onReady;
@@ -65,8 +75,9 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
       onReadyRef.current?.();
     };
 
+    // Only treat as buffering once we are past the initial load and actually playing
     const handleWaiting = () => {
-      if (!loadingRef.current) setBuffering(true);
+      if (!loadingRef.current && !video.paused) setBuffering(true);
     };
 
     const handleError = () => {
@@ -82,15 +93,16 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
     video.addEventListener("playing", handlePlaying);
     video.addEventListener("waiting", handleWaiting);
     video.addEventListener("stalled", handleWaiting);
+    video.addEventListener("seeked", handleCanPlay);
     video.addEventListener("error", handleError);
     video.addEventListener("ended", handleEnded);
 
     const player = new Plyr(video, {
       autoplay: true,
       muted: true,
-      clickToPlay: true,
+      clickToPlay: false, // gestures are handled manually below
       resetOnEnd: false,
-      keyboard: { focused: true, global: false },
+      keyboard: { focused: false, global: false }, // handled manually below
       tooltips: { controls: true, seek: true },
       controls: [
         "play",
@@ -121,6 +133,7 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
       video.removeEventListener("playing", handlePlaying);
       video.removeEventListener("waiting", handleWaiting);
       video.removeEventListener("stalled", handleWaiting);
+      video.removeEventListener("seeked", handleCanPlay);
       video.removeEventListener("error", handleError);
       video.removeEventListener("ended", handleEnded);
 
@@ -131,20 +144,57 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
     };
   }, [src]);
 
-  /* ─────────── Helpers ─────────── */
-  const seek = (delta) => {
-    const v = videoRef.current;
-    if (!v || !isFinite(v.duration)) return;
-    v.currentTime = Math.max(0, Math.min(v.duration, v.currentTime + delta));
-    setSeekHint({ dir: delta > 0 ? "fwd" : "back", amount: Math.abs(delta) });
-    window.clearTimeout(seek._t);
-    seek._t = window.setTimeout(() => setSeekHint(null), 650);
+  /* ─────────── Core actions (ref-only, safe inside [] effects) ─────────── */
+  const flashCenter = (type) => {
+    setCenterIcon({ type, id: Date.now() });
+    window.clearTimeout(flashCenter._t);
+    flashCenter._t = window.setTimeout(() => setCenterIcon(null), 480);
   };
 
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
-    v.paused ? v.play().catch(() => {}) : v.pause();
+    if (v.paused) {
+      v.play().catch(() => {});
+      flashCenter("play");
+    } else {
+      v.pause();
+      flashCenter("pause");
+    }
+  };
+
+  // Move playback by `delta` seconds, clamped to a seekable position so the
+  // browser doesn't silently snap back (which made the old version look broken).
+  const seekBy = (delta) => {
+    const v = videoRef.current;
+    if (!v || !isFinite(v.duration) || v.duration <= 0) return;
+    let target = v.currentTime + delta;
+    target = Math.max(0, Math.min(v.duration - 0.15, target));
+    try {
+      const sk = v.seekable;
+      if (sk && sk.length) {
+        target = Math.max(sk.start(0), Math.min(sk.end(sk.length - 1), target));
+      }
+    } catch (e) { }
+    v.currentTime = target;
+  };
+
+  // Accumulating seek + visual hint (YouTube-style). Same direction within the
+  // window keeps adding up (10s → 20s → 30s) while each tap still skips `amount`.
+  const accumRef = useRef({ dir: null, total: 0, timer: null });
+  const flashSeek = (dir, amount) => {
+    seekBy(dir === "fwd" ? amount : -amount);
+
+    const a = accumRef.current;
+    if (a.dir === dir) a.total += amount;
+    else { a.dir = dir; a.total = amount; }
+
+    setSeekHint({ dir, amount: a.total });
+    window.clearTimeout(a.timer);
+    a.timer = window.setTimeout(() => {
+      accumRef.current = { dir: null, total: 0, timer: null };
+      setSeekHint(null);
+    }, ACCUM_WINDOW);
   };
 
   const adjustVolume = (delta) => {
@@ -166,17 +216,79 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
     try { p.fullscreen.toggle(); } catch (e) { }
   };
 
+  /* ─────────── Unified tap / click gestures ─────────── */
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    const onControls = (el) =>
+      !!el?.closest?.(".plyr__controls, .plyr__control, .plyr__menu");
+
+    let down = { x: 0, y: 0, t: 0, ignore: true };
+    let tapTimer = null;
+
+    const handleTap = (clientX, pointerType) => {
+      const rect = wrapper.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const w = rect.width || 1;
+      const side = x < w * 0.35 ? "back" : x > w * 0.65 ? "fwd" : "center";
+
+      if (tapTimer) {
+        // Second tap → double-tap action
+        window.clearTimeout(tapTimer);
+        tapTimer = null;
+        if (side === "back") flashSeek("back", SIDE_SEEK);
+        else if (side === "fwd") flashSeek("fwd", SIDE_SEEK);
+        else if (pointerType === "mouse") toggleFullscreen();
+        else togglePlay();
+      } else {
+        tapTimer = window.setTimeout(() => {
+          tapTimer = null;
+          togglePlay();
+        }, TAP_WINDOW);
+      }
+    };
+
+    const onPointerDown = (e) => {
+      if (onControls(e.target) || (e.pointerType === "mouse" && e.button !== 0)) {
+        down.ignore = true;
+        return;
+      }
+      down = { x: e.clientX, y: e.clientY, t: Date.now(), ignore: false };
+    };
+
+    const onPointerUp = (e) => {
+      if (down.ignore || onControls(e.target)) return;
+      const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+      if (moved > 14 || Date.now() - down.t > 600) return; // a drag / long-press, not a tap
+      handleTap(e.clientX, e.pointerType);
+    };
+
+    const onDblClick = (e) => {
+      if (!onControls(e.target)) e.preventDefault();
+    };
+
+    wrapper.addEventListener("pointerdown", onPointerDown);
+    wrapper.addEventListener("pointerup", onPointerUp);
+    wrapper.addEventListener("dblclick", onDblClick);
+    return () => {
+      window.clearTimeout(tapTimer);
+      wrapper.removeEventListener("pointerdown", onPointerDown);
+      wrapper.removeEventListener("pointerup", onPointerUp);
+      wrapper.removeEventListener("dblclick", onDblClick);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /* ─────────── Keyboard shortcuts ─────────── */
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
 
     const handleKey = (e) => {
-      // ignore typing in inputs
       const tag = e.target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable) return;
 
-      // only act when hovered OR player has focus (Plyr keyboard.focused already covers focus)
       const hovered = wrapper.matches(":hover");
       const focusInside = wrapper.contains(document.activeElement);
       if (!hovered && !focusInside) return;
@@ -189,19 +301,19 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
           break;
         case "arrowleft":
           e.preventDefault();
-          seek(-5);
+          flashSeek("back", 5);
           break;
         case "arrowright":
           e.preventDefault();
-          seek(5);
+          flashSeek("fwd", 5);
           break;
         case "j":
           e.preventDefault();
-          seek(-10);
+          flashSeek("back", 10);
           break;
         case "l":
           e.preventDefault();
-          seek(10);
+          flashSeek("fwd", 10);
           break;
         case "arrowup":
           e.preventDefault();
@@ -226,49 +338,24 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, []);
-
-  /* ─────────── Double-tap to seek (mobile) ─────────── */
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return;
-
-    let lastTap = 0;
-    let lastX = 0;
-
-    const handleTouch = (e) => {
-      const t = e.changedTouches?.[0];
-      if (!t) return;
-      const now = Date.now();
-      const rect = wrapper.getBoundingClientRect();
-      const x = t.clientX - rect.left;
-
-      if (now - lastTap < 320 && Math.abs(x - lastX) < 60) {
-        // double-tap
-        const isRight = x > rect.width / 2;
-        seek(isRight ? 10 : -10);
-        lastTap = 0; // reset
-        e.preventDefault();
-      } else {
-        lastTap = now;
-        lastX = x;
-      }
-    };
-
-    wrapper.addEventListener("touchend", handleTouch, { passive: false });
-    return () => wrapper.removeEventListener("touchend", handleTouch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="player-wrapper" ref={wrapperRef} tabIndex={-1}>
-      {(loading || buffering) && !error && (
-        <div className="player-loader">
-          <div className="player-spinner-modern">
-            <span /><span /><span /><span />
-          </div>
-          <span className="player-spinner-text">
-            {buffering && !loading ? "Buffering…" : "Loading video…"}
-          </span>
+      {/* Initial load — full overlay with sleek ring + indeterminate top bar */}
+      {loading && !error && (
+        <div className="vp-loader vp-loader--full">
+          <div className="vp-topbar" />
+          <div className="vp-ring" />
+          <span className="vp-loader-text">Loading video…</span>
+        </div>
+      )}
+
+      {/* Buffering mid-playback — lightweight, keeps the frame visible */}
+      {buffering && !loading && !error && (
+        <div className="vp-loader vp-loader--buffer">
+          <div className="vp-ring vp-ring--sm" />
         </div>
       )}
 
@@ -279,12 +366,22 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
         </div>
       )}
 
-      {/* Seek hint overlay (mobile double-tap) */}
+      {/* Skip feedback (tap / keyboard) */}
       {seekHint && (
-        <div className={`seek-hint ${seekHint.dir}`}>
-          <div className="seek-hint-inner">
-            {seekHint.dir === "fwd" ? "⏩" : "⏪"} {seekHint.amount}s
+        <div className={`vp-seek vp-seek--${seekHint.dir}`}>
+          <div className="vp-seek-bubble">
+            <div className="vp-seek-chevrons">
+              {seekHint.dir === "fwd" ? <FastForwardRounded /> : <FastRewindRounded />}
+            </div>
+            <span className="vp-seek-text">{seekHint.amount} seconds</span>
           </div>
+        </div>
+      )}
+
+      {/* Play / pause feedback flash */}
+      {centerIcon && (
+        <div className="vp-center-flash" key={centerIcon.id}>
+          {centerIcon.type === "play" ? <PlayArrowRounded /> : <PauseRounded />}
         </div>
       )}
 
@@ -294,7 +391,7 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
           poster={poster}
           playsInline
           webkit-playsinline="true"
-          controls
+          preload="auto"
           controlsList="nodownload noplaybackrate"
           disablePictureInPicture
           onContextMenu={(e) => e.preventDefault()}
