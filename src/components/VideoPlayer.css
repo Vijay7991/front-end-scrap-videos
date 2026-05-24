@@ -12,6 +12,7 @@
   animation: playerFadeIn 0.45s ease both;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
   outline: none;
+  touch-action: manipulation; /* no double-tap-to-zoom over the player */
 }
 
 .player-wrapper:hover {
@@ -215,37 +216,6 @@
 @keyframes vpChevron {
   0%, 100% { opacity: 0.55; }
   50%      { opacity: 1; }
-}
-
-/* ══════════════════════════════════════════════════════════
-   PLAY / PAUSE FLASH
-   ══════════════════════════════════════════════════════════ */
-.vp-center-flash {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 78px;
-  height: 78px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  animation: vpFlash 0.48s ease-out both;
-}
-
-.vp-center-flash svg {
-  font-size: 44px;
-  color: #fff;
-}
-
-@keyframes vpFlash {
-  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
-  30%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25); }
 }
 
 @media (prefers-reduced-motion: reduce) {

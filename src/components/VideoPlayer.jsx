@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import Plyr from "plyr";
 import "plyr/dist/plyr.css";
 
-import PlayArrowRounded from "@mui/icons-material/PlayArrowRounded";
-import PauseRounded from "@mui/icons-material/PauseRounded";
 import FastForwardRounded from "@mui/icons-material/FastForwardRounded";
 import FastRewindRounded from "@mui/icons-material/FastRewindRounded";
 
@@ -11,13 +9,13 @@ import "./VideoPlayer.css";
 import "./player-enhancements.css";
 
 const SIDE_SEEK = 10; // seconds skipped per double-tap / J-L
-const TAP_WINDOW = 260; // ms to wait before treating a tap as a single tap
-const ACCUM_WINDOW = 800; // ms during which repeated taps accumulate
+const ACCUM_WINDOW = 800; // ms during which repeated skips accumulate in the hint
 
 /**
  * VideoPlayer
- *  - YouTube-style gestures: single tap = play/pause, double-tap left/right = skip ±10s,
- *    double-click center = fullscreen (desktop). Taps on the same side accumulate.
+ *  - Single tap/click = play/pause (Plyr clickToPlay), with a big center play button.
+ *  - Double-tap (mobile) / double-click (desktop) left or right = skip ±10s and keep playing.
+ *    Double-click the centre on desktop = fullscreen. Repeated skips accumulate (10s→20s→30s).
  *  - Keyboard: Space/K, ←/→ (5s), J/L (10s), ↑/↓ volume, M mute, F fullscreen.
  *  - Sleek gradient-ring loader + lightweight buffering spinner.
  */
@@ -35,7 +33,6 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
   const [buffering, setBuffering] = useState(false);
   const [error, setError] = useState(false);
   const [seekHint, setSeekHint] = useState(null); // { dir: 'fwd' | 'back', amount }
-  const [centerIcon, setCenterIcon] = useState(null); // { type: 'play' | 'pause', id }
 
   useEffect(() => {
     onReadyRef.current = onReady;
@@ -100,11 +97,12 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
     const player = new Plyr(video, {
       autoplay: true,
       muted: true,
-      clickToPlay: false, // gestures are handled manually below
+      clickToPlay: true, // tap the video to play/pause
       resetOnEnd: false,
-      keyboard: { focused: false, global: false }, // handled manually below
+      keyboard: { focused: false, global: false }, // keys handled manually below
       tooltips: { controls: true, seek: true },
       controls: [
+        "play-large", // big centre play button when paused
         "play",
         "progress",
         "current-time",
@@ -145,22 +143,10 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
   }, [src]);
 
   /* ─────────── Core actions (ref-only, safe inside [] effects) ─────────── */
-  const flashCenter = (type) => {
-    setCenterIcon({ type, id: Date.now() });
-    window.clearTimeout(flashCenter._t);
-    flashCenter._t = window.setTimeout(() => setCenterIcon(null), 480);
-  };
-
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
-    if (v.paused) {
-      v.play().catch(() => {});
-      flashCenter("play");
-    } else {
-      v.pause();
-      flashCenter("pause");
-    }
+    v.paused ? v.play().catch(() => {}) : v.pause();
   };
 
   // Move playback by `delta` seconds, clamped to a seekable position so the
@@ -197,6 +183,14 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
     }, ACCUM_WINDOW);
   };
 
+  // Double-tap/click skip: seek and make sure playback continues (the whole
+  // point of "skip ahead" is to keep watching).
+  const skip = (dir) => {
+    flashSeek(dir, SIDE_SEEK);
+    const v = videoRef.current;
+    if (v && v.paused) v.play().catch(() => {});
+  };
+
   const adjustVolume = (delta) => {
     const v = videoRef.current;
     if (!v) return;
@@ -216,7 +210,7 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
     try { p.fullscreen.toggle(); } catch (e) { }
   };
 
-  /* ─────────── Unified tap / click gestures ─────────── */
+  /* ─────────── Double-tap / double-click to skip ─────────── */
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
@@ -224,57 +218,50 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
     const onControls = (el) =>
       !!el?.closest?.(".plyr__controls, .plyr__control, .plyr__menu");
 
-    let down = { x: 0, y: 0, t: 0, ignore: true };
-    let tapTimer = null;
-
-    const handleTap = (clientX, pointerType) => {
+    const zoneOf = (clientX) => {
       const rect = wrapper.getBoundingClientRect();
       const x = clientX - rect.left;
       const w = rect.width || 1;
-      const side = x < w * 0.35 ? "back" : x > w * 0.65 ? "fwd" : "center";
+      if (x < w * 0.4) return "back";
+      if (x > w * 0.6) return "fwd";
+      return "center";
+    };
 
-      if (tapTimer) {
-        // Second tap → double-tap action
-        window.clearTimeout(tapTimer);
-        tapTimer = null;
-        if (side === "back") flashSeek("back", SIDE_SEEK);
-        else if (side === "fwd") flashSeek("fwd", SIDE_SEEK);
-        else if (pointerType === "mouse") toggleFullscreen();
-        else togglePlay();
+    // Mobile: detect a double-tap on touchend (single taps fall through to Plyr's
+    // click-to-play). preventDefault on the 2nd tap stops double-tap-to-zoom.
+    let lastTap = 0;
+    let lastX = 0;
+    const onTouchEnd = (e) => {
+      if (onControls(e.target)) return;
+      const t = e.changedTouches?.[0];
+      if (!t) return;
+      const now = Date.now();
+      if (now - lastTap < 320 && Math.abs(t.clientX - lastX) < 60) {
+        const zone = zoneOf(t.clientX);
+        if (zone !== "center") {
+          skip(zone);
+          e.preventDefault();
+        }
+        lastTap = 0;
       } else {
-        tapTimer = window.setTimeout(() => {
-          tapTimer = null;
-          togglePlay();
-        }, TAP_WINDOW);
+        lastTap = now;
+        lastX = t.clientX;
       }
     };
 
-    const onPointerDown = (e) => {
-      if (onControls(e.target) || (e.pointerType === "mouse" && e.button !== 0)) {
-        down.ignore = true;
-        return;
-      }
-      down = { x: e.clientX, y: e.clientY, t: Date.now(), ignore: false };
-    };
-
-    const onPointerUp = (e) => {
-      if (down.ignore || onControls(e.target)) return;
-      const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
-      if (moved > 14 || Date.now() - down.t > 600) return; // a drag / long-press, not a tap
-      handleTap(e.clientX, e.pointerType);
-    };
-
+    // Desktop: native dblclick. Sides skip, centre toggles fullscreen.
     const onDblClick = (e) => {
-      if (!onControls(e.target)) e.preventDefault();
+      if (onControls(e.target)) return;
+      e.preventDefault();
+      const zone = zoneOf(e.clientX);
+      if (zone === "center") toggleFullscreen();
+      else skip(zone);
     };
 
-    wrapper.addEventListener("pointerdown", onPointerDown);
-    wrapper.addEventListener("pointerup", onPointerUp);
+    wrapper.addEventListener("touchend", onTouchEnd, { passive: false });
     wrapper.addEventListener("dblclick", onDblClick);
     return () => {
-      window.clearTimeout(tapTimer);
-      wrapper.removeEventListener("pointerdown", onPointerDown);
-      wrapper.removeEventListener("pointerup", onPointerUp);
+      wrapper.removeEventListener("touchend", onTouchEnd);
       wrapper.removeEventListener("dblclick", onDblClick);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -378,13 +365,6 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
         </div>
       )}
 
-      {/* Play / pause feedback flash */}
-      {centerIcon && (
-        <div className="vp-center-flash" key={centerIcon.id}>
-          {centerIcon.type === "play" ? <PlayArrowRounded /> : <PauseRounded />}
-        </div>
-      )}
-
       <div style={{ display: error ? "none" : "block", width: "100%", height: "100%" }}>
         <video
           ref={videoRef}
@@ -392,6 +372,7 @@ function VideoPlayer({ src, poster, onErrorNext, onReady, onEnded }) {
           playsInline
           webkit-playsinline="true"
           preload="auto"
+          controls
           controlsList="nodownload noplaybackrate"
           disablePictureInPicture
           onContextMenu={(e) => e.preventDefault()}
